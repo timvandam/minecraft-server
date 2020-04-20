@@ -22,6 +22,10 @@ describe('read works', () => {
     expect(new VarInt(Buffer.from('ff01', 'hex')).value).toBe(255)
   })
 
+  it('when providing too-big values', () => {
+    expect(new VarInt(Buffer.from('0102', 'hex')).buffer).toEqual(Buffer.from('01', 'hex'))
+  })
+
   it('when providing invalid values', () => {
     expect(() => new VarInt(Buffer.from('ffffffffffff', 'hex'))).toThrow(new Error('VarInt is too big'))
     expect(() => new VarInt(Buffer.from('ffffffffffffffffff01', 'hex'))).toThrow(new Error('VarInt is too big'))

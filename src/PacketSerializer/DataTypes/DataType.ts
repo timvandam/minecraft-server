@@ -7,9 +7,9 @@ export abstract class DataType<T> {
       ? this.read(value)
       : value
 
-    this.buffer = value instanceof Buffer
-      ? value
-      : this.write(value)
+    // Re-write the buffer from the read value
+    // This is done in case the provided buffer was too large but still read correctly
+    this.buffer = this.write(this.value)
   }
 
   protected abstract read (data: Buffer): T

@@ -1,4 +1,4 @@
-import { DataType } from "./";
+import { DataType } from './DataType'
 
 export default class VarInt extends DataType<number> {
   protected read (data: Buffer): number {

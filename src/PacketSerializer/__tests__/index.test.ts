@@ -2,7 +2,7 @@ import PacketSerializer from '../'
 import { Duplex } from 'stream'
 
 let stream: Duplex
-let done: Promise<any>
+let done: Promise<undefined>
 let packets: Buffer[]
 beforeEach(() => {
   stream = new PacketSerializer()
@@ -35,3 +35,5 @@ it('works when providing multiple packets seperately', async () => {
   expect(packets[0]).toEqual(packets[1])
   expect(packets[0]).toEqual(Buffer.from('0102', 'hex'))
 })
+
+// TODO: Incomplete packets

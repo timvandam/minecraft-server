@@ -2,15 +2,20 @@ import { Duplex } from 'stream'
 import VarInt from './DataTypes/VarInt'
 
 export default class PacketSerializer extends Duplex {
-  private receivedBytes: Buffer;
-  private remainingBytes: number;
-  private buffer: Buffer[];
+  // The packet currently being read
+  private receivedBytes: Buffer
+
+  // The amount of bytes needed to finish the current packet
+  private remainingBytes: number
+
+  // A list of read packets that have not yet been read
+  private buffer: Buffer[]
 
   constructor () {
     super()
-    this.receivedBytes = Buffer.allocUnsafe(0) // potentially contains bytes of the current unfinished packet
-    this.remainingBytes = 0 // how many bytes are needed to finish the current packet
-    this.buffer = [] // packets that will be pushed soon
+    this.receivedBytes = Buffer.allocUnsafe(0)
+    this.remainingBytes = 0
+    this.buffer = []
   }
 
   /**
@@ -47,7 +52,7 @@ export default class PacketSerializer extends Duplex {
   /**
    * Adds the current packet to the buffer
    */
-  addPacket () {
+  private addPacket (): void {
     this.buffer.push(this.receivedBytes)
     this.receivedBytes = Buffer.allocUnsafe(0)
     this.remainingBytes = 0
@@ -56,7 +61,7 @@ export default class PacketSerializer extends Duplex {
   /**
    * Pushes data from the buffer when needed
    */
-  _read (size: number): void {
+  _read (): void {
     let reading = true
     while (reading && this.buffer.length) {
       reading = this.push(this.buffer.shift())

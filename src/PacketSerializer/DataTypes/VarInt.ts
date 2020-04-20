@@ -30,7 +30,6 @@ export default class VarInt extends DataType<number> {
       result.push(temp)
     } while (value !== 0)
 
-
     return Buffer.from(result)
   }
 }

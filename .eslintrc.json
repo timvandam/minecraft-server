@@ -4,7 +4,9 @@
     "node": true
   },
   "extends": [
-    "standard"
+    "standard",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:jest/recommended"
   ],
   "globals": {
     "Atomics": "readonly",
@@ -16,7 +18,8 @@
     "sourceType": "module"
   },
   "plugins": [
-    "@typescript-eslint"
+    "@typescript-eslint",
+    "jest"
   ],
   "rules": {
   }

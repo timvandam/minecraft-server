@@ -1,4 +1,4 @@
 node_modules
 yarn.lock
-src/*.js
+src/**/*.js
 logs

@@ -23,10 +23,11 @@ server.on('connection', socket => {
   socket
     .pipe(new PacketSerializer()) // serialize incoming packets
     .pipe(new PacketReader()) // then read them
+  // TODO: Attach plugins to PacketReader
 })
 
 server.on('error', error => logger.error(`An unexpected server error occurred - ${error.message}`))
 
 server.listen({
   port: config.server.port
-})
+}, () => logger.info(`Server listening on port ${config.server.port}`))

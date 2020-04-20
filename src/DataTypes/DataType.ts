@@ -1,3 +1,7 @@
+export interface DataTypeConstructor<T> {
+  new <T>(value: T | Buffer): DataType<T>;
+}
+
 export abstract class DataType<T> {
   public value: T;
   public buffer: Buffer;

@@ -35,7 +35,7 @@ export default class PacketReader extends Writable {
     }
 
     const { name, struct } = packetData
-    const data: any[] = [this.socket] // we also send the socket to the eventemitter
+    const data: any[] = [this.socket] // we also send the socket to plugins
 
     // Read the data in this packet
     for (const DT of struct) {

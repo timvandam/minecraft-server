@@ -1,5 +1,5 @@
 import { Duplex } from 'stream'
-import VarInt from './DataTypes/VarInt'
+import VarInt from '../DataTypes/VarInt'
 
 export default class PacketSerializer extends Duplex {
   // The packet currently being read
@@ -66,14 +66,17 @@ export default class PacketSerializer extends Duplex {
     while (reading && this.buffer.length) {
       reading = this.push(this.buffer.shift())
     }
+
+    // If the writable stream has finished and the buffer is empty, end the readable stream
+    if (this.buffer.length === 0 && this.writableFinished) this.push(null)
   }
 
   /**
    * Closes the readable stream after the writable stream has finished
    */
   _final (callback: (error?: (Error | null)) => void): void {
-    // If the writable stream has finished, also end the readable stream
-    this.push(null)
+    // If the writable stream has finished and the read buffer is empty, also end the readable stream
+    if (this.buffer.length === 0) this.push(null)
     callback()
   }
 }

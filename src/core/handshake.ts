@@ -3,7 +3,7 @@ import MinecraftClient from '../MinecraftClient'
 import { status } from '../config'
 
 /**
- * Handles handshake and status
+ * Handles handshake and status packets
  */
 export default function handshake (user: EventEmitter) {
   user.on('handshake', (

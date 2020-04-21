@@ -2,7 +2,7 @@
 This project is structured into a few modules
 - Server Storage (Memory Store with server data)
 - World Loader (Loads and writes worlds)
-- Packet (De)Serializer (Duplex stream. Buffers -> Stream -> Individual packets)
+- Packet (De)Serializer (Duplex stream. Buffers -> Stream -> Individual incoming)
 - Packet Reader (Writable EventEmitter that emits packet events). These can be used to write plugins
 - Plugin Loader (Loads plugins somehow)
 - The core of the minecraft server (it is a plugin!)
@@ -12,6 +12,7 @@ import { Server, Socket } from 'net'
 import * as config from './config'
 import logger from './logger'
 import MinecraftClient from './MinecraftClient'
+import VarInt from './DataTypes/VarInt'
 
 export const server = new Server()
 

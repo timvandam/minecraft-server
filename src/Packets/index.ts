@@ -5,12 +5,19 @@ import { DataTypeConstructor } from '../DataTypes/DataType'
 import VarInt from '../DataTypes/VarInt'
 import LString from '../DataTypes/LString'
 import UShort from '../DataTypes/UShort'
+import logger from '../logger'
 
 export interface Packet {
   name: string;
   packetId: number;
   state: ESocketState;
   struct: DataTypeConstructor[];
+}
+
+export interface PacketData {
+  packetId: number;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  data: any[];
 }
 
 const alphabet: Map<string, DataTypeConstructor> = new Map()
@@ -47,16 +54,20 @@ interface PacketByESocketStateById {
   [key: number]: PacketById;
 }
 
-// Packets by ESocketState by Id
-export const packets = fs.promises.opendir(path.resolve(__dirname, './packets/'))
-  .then(async dir => {
+/**
+ * Fetches all packets in a directory
+ */
+async function getPackets (directory: string): Promise<PacketByESocketStateById> {
+  try {
+    const dir = await fs.promises.opendir(directory)
+
     const packets: PacketByESocketStateById = {}
 
     for await (const dirent of dir) {
       if (!dirent.isFile()) continue
       if (path.extname(dirent.name) !== '.json') continue
       // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const schema = require(path.resolve(__dirname, 'packets', dirent.name))
+      const schema = require(path.resolve(directory, dirent.name))
       schema.struct = readStruct(schema.struct)
       const packet: Packet = schema
       const { packetId, state } = packet
@@ -65,4 +76,12 @@ export const packets = fs.promises.opendir(path.resolve(__dirname, './packets/')
     }
 
     return packets
-  })
+  } catch (error) {
+    logger.error(`Could not load packets in directory ${directory} - ${error.message}`)
+    logger.verbose(error.stack)
+    return {}
+  }
+}
+
+export const incomingPackets = getPackets(path.resolve(__dirname, './incoming'))
+export const outgoingPackets = getPackets(path.resolve(__dirname, './outgoing'))

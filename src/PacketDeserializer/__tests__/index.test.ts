@@ -19,7 +19,7 @@ it('works when providing a whole packet', async () => {
   expect(packets).toEqual([Buffer.from('0102', 'hex')])
 })
 
-it('works when providing multiple whole packets at once', async () => {
+it('works when providing multiple whole incoming at once', async () => {
   stream.end(Buffer.from('01020102', 'hex')) // The previous packet, twice
   await done
   expect(packets.length).toBe(2)
@@ -27,7 +27,7 @@ it('works when providing multiple whole packets at once', async () => {
   expect(packets[0]).toEqual(Buffer.from('0102', 'hex'))
 })
 
-it('works when providing multiple packets seperately', async () => {
+it('works when providing multiple incoming seperately', async () => {
   stream.write(Buffer.from('0102', 'hex'))
   stream.end(Buffer.from('0102', 'hex'))
   await done
@@ -36,4 +36,4 @@ it('works when providing multiple packets seperately', async () => {
   expect(packets[0]).toEqual(Buffer.from('0102', 'hex'))
 })
 
-// TODO: Incomplete packets
+// TODO: Incomplete incoming

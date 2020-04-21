@@ -8,14 +8,14 @@ export default class PacketDeserializer extends Duplex {
   // The amount of bytes needed to finish the current packet
   private remainingBytes = 0
 
-  // A list of read packets that have not yet been read
+  // A list of read incoming that have not yet been read
   private buffer: Buffer[] = []
 
   // Whether we should push data live
   private reading = false
 
   /**
-   * Handles incoming packets and serializes them
+   * Handles incoming incoming and serializes them
    */
   _write (chunk: Buffer, encoding: string, callback: (error?: (Error | null)) => void): void {
     /* Packet Format:

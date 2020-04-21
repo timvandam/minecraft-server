@@ -1,6 +1,6 @@
 import { Writable } from 'stream'
 import VarInt from '../DataTypes/VarInt'
-import { packets, Packet } from './packets'
+import { incomingPackets, Packet } from '../Packets'
 import { DataType } from '../DataTypes/DataType'
 import MinecraftClient from '../MinecraftClient'
 import logger from '../logger'
@@ -25,7 +25,7 @@ export default class PacketReader extends Writable {
     packet = packet.slice(packetId.buffer.length)
 
     // Fetch this packet's structure
-    const packetData: Packet = (await packets)?.[this.client.state]?.[packetId.value]
+    const packetData: Packet = (await incomingPackets)?.[this.client.state]?.[packetId.value]
     if (packetData === undefined) {
       logger.warn(`Received unknown packet with ID ${packetId.value} (state=${this.client.state})`)
       return callback(new Error('No known packet structure for the received packet'))

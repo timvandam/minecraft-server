@@ -16,6 +16,7 @@ import MinecraftClient from './MinecraftClient'
 export const server = new Server()
 
 server.on('connection', (socket: Socket) => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const client = new MinecraftClient(socket)
   logger.verbose('Client connected')
   socket.once('close', () => logger.verbose('Client disconnected'))

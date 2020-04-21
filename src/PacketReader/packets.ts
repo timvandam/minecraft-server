@@ -1,7 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 import { ESocketState } from '../enums/ESocketState'
-import { DataType, DataTypeConstructor } from '../DataTypes/DataType'
+import { DataTypeConstructor } from '../DataTypes/DataType'
 import VarInt from '../DataTypes/VarInt'
 import LString from '../DataTypes/LString'
 import UShort from '../DataTypes/UShort'
@@ -10,16 +10,16 @@ export interface Packet {
   name: string;
   packetId: number;
   state: ESocketState;
-  struct: DataTypeConstructor<any>[];
+  struct: DataTypeConstructor[];
 }
 
-const alphabet: Map<string, DataType<any>> = new Map()
+const alphabet: Map<string, DataTypeConstructor> = new Map()
   .set('V', VarInt)
   .set('S', LString)
   .set('Us', UShort)
 
-export function readStruct (struct: string): DataType<any>[] {
-  const result: DataType<any>[] = []
+export function readStruct (struct: string): DataTypeConstructor[] {
+  const result: DataTypeConstructor[] = []
 
   let symbol = ''
   for (let i = 0; i < struct.length + 1; i++) {

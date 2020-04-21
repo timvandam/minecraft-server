@@ -1,4 +1,4 @@
-export interface DataTypeConstructor<T> {
+export interface DataTypeConstructor {
   new <T>(value: T | Buffer): DataType<T>;
 }
 

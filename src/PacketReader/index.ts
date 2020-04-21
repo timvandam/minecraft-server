@@ -1,19 +1,16 @@
 import { Writable } from 'stream'
 import VarInt from '../DataTypes/VarInt'
-import { ESocketState } from '../enums/ESocketState'
 import { packets, Packet } from './packets'
 import { DataType } from '../DataTypes/DataType'
-import { MinecraftClient, SocketState } from '../index'
+import MinecraftClient from '../MinecraftClient'
 import logger from '../logger'
 
 export default class PacketReader extends Writable {
-  // The connected socket
-  public socket: MinecraftClient;
+  private client: MinecraftClient
 
-  constructor (socket: MinecraftClient) {
+  constructor (client: MinecraftClient) {
     super()
-    this.socket = socket
-    this.socket[SocketState] = ESocketState.HANDSHAKING
+    this.client = client
   }
 
   /**
@@ -28,28 +25,30 @@ export default class PacketReader extends Writable {
     packet = packet.slice(packetId.buffer.length)
 
     // Fetch this packet's structure
-    const packetData: Packet = (await packets)?.[this.socket[SocketState]]?.[packetId.value]
+    const packetData: Packet = (await packets)?.[this.client.state]?.[packetId.value]
     if (packetData === undefined) {
-      logger.warn(`Received unknown packet with ID ${packetId.value} (state=${this.socket[SocketState]})`)
+      logger.warn(`Received unknown packet with ID ${packetId.value} (state=${this.client.state})`)
       return callback(new Error('No known packet structure for the received packet'))
     }
 
     const { name, struct } = packetData
-    const data: any[] = [this.socket] // we also send the socket to plugins
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const data: any[] = []
 
     // Read the data in this packet
     for (const DT of struct) {
       if (packet.length === 0) {
-        logger.warn(`Packet with ID ${packetId.value} was too short (state=${this.socket[SocketState]})`)
+        logger.warn(`Packet with ID ${packetId.value} was too short (state=${this.client.state})`)
         break
       }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const value: DataType<any> = new DT(packet)
       data.push(value.value)
       packet = packet.slice(value.buffer.length)
     }
 
-    // Emit this packet
-    this.emit(name, ...data)
+    // Emit this packet + client + data
+    this.emit(name, this.client, ...data)
     callback()
   }
 }

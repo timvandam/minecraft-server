@@ -1,17 +1,17 @@
 import { EventEmitter } from 'events'
-import { MinecraftClient, SocketState } from '../index'
+import MinecraftClient from '../MinecraftClient'
 
 export default function core (user: EventEmitter) {
   user.on('handshake', (
-    socket: MinecraftClient,
+    client: MinecraftClient,
     protocolVersion: number,
     address: string,
     port: number,
-    nextState: number) => {
-    socket[SocketState] = nextState
+    nextState: number): void => {
+    client.state = nextState
   })
 
-  user.on('status', (socket: MinecraftClient) => {
+  user.on('status', (client: MinecraftClient): void => {
   //  TODO: Elaborate MinecraftClient class
   })
 }

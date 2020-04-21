@@ -6,7 +6,7 @@ import MinecraftClient from '../MinecraftClient'
 import logger from '../logger'
 
 export default class PacketReader extends Writable {
-  private client: MinecraftClient
+  private readonly client: MinecraftClient
 
   constructor (client: MinecraftClient) {
     super()

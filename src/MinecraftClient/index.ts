@@ -11,13 +11,13 @@ export const clients: Set<MinecraftClient> = new Set()
  * Represents a user currently connected to the server
  */
 export default class MinecraftClient {
-  private socket: Socket
+  private readonly socket: Socket
   public state: ESocketState = ESocketState.HANDSHAKING
-  public packets: PacketReader
+  public readonly packets: PacketReader
 
   constructor (socket: Socket) {
     this.socket = socket
-    this.packets = new PacketReader(socket)
+    this.packets = new PacketReader(this)
 
     // Deserialize incoming packets and emit them with PacketReader
     socket

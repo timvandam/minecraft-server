@@ -1,29 +1,8 @@
 import { EventEmitter } from 'events'
-import MinecraftClient from '../MinecraftClient'
-import { status } from '../config'
+import handshake from './handshake'
+import login from './login'
 
 export default function core (user: EventEmitter) {
-  user.on('handshake', (
-    client: MinecraftClient,
-    protocolVersion: number,
-    address: string,
-    port: number,
-    nextState: number): void => {
-    client.state = nextState
-  })
-
-  user.on('status', (client: MinecraftClient): void => {
-    const json = JSON.stringify(status)
-    client.write({
-      packetId: 0,
-      data: [json]
-    })
-  })
-
-  user.on('ping', (client: MinecraftClient, num: bigint): void => {
-    client.write({
-      packetId: 1,
-      data: [num]
-    })
-  })
+  handshake(user)
+  login(user)
 }

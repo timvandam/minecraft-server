@@ -72,6 +72,7 @@ async function getPackets (directory: string): Promise<PacketByESocketStateById>
       const schema = require(path.resolve(directory, dirent.name))
       schema.struct = readStruct(schema.struct)
       const packet: Packet = schema
+      packet.name = path.basename(dirent.name, '.json')
       const { packetId, state } = packet
       if (!packets[state]) packets[state] = {}
       packets[state][packetId] = packet

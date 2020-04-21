@@ -16,6 +16,8 @@ export default class PacketDeserializer extends Duplex {
 
   /**
    * Handles incoming incoming and serializes them
+   * @todo decryption
+   * @todo compression
    */
   _write (chunk: Buffer, encoding: string, callback: (error?: (Error | null)) => void): void {
     /* Packet Format:

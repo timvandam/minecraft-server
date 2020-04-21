@@ -13,7 +13,6 @@ export default function core (user: EventEmitter) {
   })
 
   user.on('status', (client: MinecraftClient): void => {
-  //  TODO: Elaborate MinecraftClient class
     const json = JSON.stringify(status)
     client.write({
       packetId: 0,

@@ -13,9 +13,11 @@ import { DataType } from '../DataTypes/DataType'
 export const clients: Set<MinecraftClient> = new Set()
 
 /**
- * Represents a user currently connected to the server
+ * Represents a user currently connected to the server. Also acts as a packet serializer
+ * @todo encryption
+ * @todo compression
+ * @todo easy methods for plugins to use
  */
-// TODO: Extends Duplex stream. Writable Packet instance. Readable Buffers. client.pipe(socket)
 export default class MinecraftClient extends Duplex {
   private readonly socket: Socket
   public state: ESocketState = ESocketState.HANDSHAKING

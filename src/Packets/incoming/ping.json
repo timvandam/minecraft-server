@@ -1,0 +1,6 @@
+{
+  "name": "ping",
+  "packetId": 1,
+  "state": 1,
+  "struct": "L"
+}

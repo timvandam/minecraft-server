@@ -6,6 +6,7 @@ import VarInt from '../DataTypes/VarInt'
 import LString from '../DataTypes/LString'
 import UShort from '../DataTypes/UShort'
 import logger from '../logger'
+import Long from '../DataTypes/Long'
 
 export interface Packet {
   name: string;
@@ -24,6 +25,7 @@ const alphabet: Map<string, DataTypeConstructor> = new Map()
   .set('V', VarInt)
   .set('S', LString)
   .set('Us', UShort)
+  .set('L', Long)
 
 export function readStruct (struct: string): DataTypeConstructor[] {
   const result: DataTypeConstructor[] = []

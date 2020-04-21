@@ -1,5 +1,6 @@
 import { EventEmitter } from 'events'
 import MinecraftClient from '../MinecraftClient'
+import { status } from '../config'
 
 export default function core (user: EventEmitter) {
   user.on('handshake', (
@@ -13,23 +14,17 @@ export default function core (user: EventEmitter) {
 
   user.on('status', (client: MinecraftClient): void => {
   //  TODO: Elaborate MinecraftClient class
-    const json = JSON.stringify({
-      version: {
-        name: '1.8.7',
-        protocol: 47
-      },
-      players: {
-        max: 100,
-        online: 5,
-        sample: []
-      },
-      description: {
-        text: 'Hello world'
-      }
-    })
+    const json = JSON.stringify(status)
     client.write({
       packetId: 0,
       data: [json]
+    })
+  })
+
+  user.on('ping', (client: MinecraftClient, num: bigint): void => {
+    client.write({
+      packetId: 1,
+      data: [num]
     })
   })
 }

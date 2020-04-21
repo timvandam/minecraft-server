@@ -3,8 +3,8 @@ export interface DataTypeConstructor<T> {
 }
 
 export abstract class DataType<T> {
-  public value: T;
-  public buffer: Buffer;
+  public value: T
+  public buffer: Buffer
 
   constructor (value: T | Buffer) {
     this.value = value instanceof Buffer

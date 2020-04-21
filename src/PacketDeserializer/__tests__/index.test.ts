@@ -1,11 +1,11 @@
-import PacketSerializer from '../'
 import { Duplex } from 'stream'
+import PacketDeserializer from '../'
 
 let stream: Duplex
 let done: Promise<undefined>
 let packets: Buffer[]
 beforeEach(() => {
-  stream = new PacketSerializer()
+  stream = new PacketDeserializer()
   done = new Promise(resolve => stream.once('end', () => resolve()))
   packets = []
   stream.on('data', packet => {

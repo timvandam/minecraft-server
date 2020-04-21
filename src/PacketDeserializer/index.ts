@@ -1,7 +1,7 @@
 import { Duplex } from 'stream'
 import VarInt from '../DataTypes/VarInt'
 
-export default class PacketSerializer extends Duplex {
+export default class PacketDeserializer extends Duplex {
   // The packet currently being read
   private receivedBytes: Buffer = Buffer.allocUnsafe(0)
 

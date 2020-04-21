@@ -11,7 +11,7 @@ This project is structured into a few modules
 import { Server } from 'net'
 import * as config from './config'
 import PacketReader from './PacketReader'
-import PacketSerializer from './PacketSerializer'
+import PacketDeserializer from './PacketDeserializer'
 import logger from './logger'
 import core from './core'
 import { Socket } from 'net'
@@ -30,7 +30,7 @@ server.on('connection', (socket: MinecraftClient) => {
   socket.on('error', error => logger.verbose(`An unexpected socket error occurred - ${error.message}`))
   core(
     socket
-      .pipe(new PacketSerializer()) // serialize incoming packets
+      .pipe(new PacketDeserializer()) // serialize incoming packets
       .pipe(new PacketReader(socket)) // then read them and send them to the core
   )
 })

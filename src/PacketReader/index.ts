@@ -1,6 +1,6 @@
 import { Writable } from 'stream'
 import VarInt from '../DataTypes/VarInt'
-import { incomingPackets, Packet } from '../Packets'
+import { incomingPackets, Packet } from '../packets'
 import { DataType } from '../DataTypes/DataType'
 import MinecraftClient from '../MinecraftClient'
 import logger from '../logger'

@@ -1,4 +1,4 @@
-import { clients } from './MinecraftClient'
+import { parseChatString } from './DataTypes/Chat'
 
 export const server = {
   port: parseInt(process.env.PORT ?? '25565')
@@ -7,6 +7,8 @@ export const server = {
 export const logger = {
   logLevel: process.env.NODE_ENV === 'production' ? 'info' : 'verbose'
 }
+
+import { clients } from './MinecraftClient'
 
 export const status = {
   version: {
@@ -18,8 +20,5 @@ export const status = {
     online: clients.size,
     sample: []
   },
-  description: {
-    // TODO: Allow colors etc (https://minecraft.gamepedia.com/Formatting_codes)
-    text: process.env.DESCRIPTION ?? 'Hello world!'
-  }
+  description: parseChatString(process.env.DESCRIPTION ?? '&a&lHello world && &rstuff!')
 }

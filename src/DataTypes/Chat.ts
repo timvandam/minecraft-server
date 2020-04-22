@@ -1,70 +1,91 @@
 import { DataType } from './DataType'
-
-export default class Chat extends DataType<string> {
-  protected read (data: Buffer): string {
-  }
-
-  protected write (value: string) {
-  }
-}
+import LString from './LString'
+import { EColors } from '../enums/EColors'
+import { EFormats } from '../enums/EFormats'
 
 const prefix = '&'
 
-const colors = new Map<string, string>()
-  .set('0', 'black')
-  .set('1', 'dark_blue')
-  .set('2', 'dark_green')
-  .set('3', 'dark_aqua')
-  .set('4', 'dark_red')
-  .set('5', 'dark_purple')
-  .set('6', 'gold')
-  .set('7', 'gray')
-  .set('8', 'dark_gray')
-  .set('9', 'blue')
-  .set('a', 'green')
-  .set('b', 'aqua')
-  .set('c', 'red')
-  .set('d', 'light_purple')
-  .set('e', 'yellow')
-  .set('f', 'white')
-
-const formats = new Map<string, string>()
-  .set('k', 'obfuscated')
-  .set('l', 'bold')
-  .set('m', 'strikethrough')
-  .set('n', 'underline')
-  .set('o', 'italic')
-  .set('r', 'reset')
+interface ChatObj {
+  text: string;
+  color?: EColors;
+  bold?: boolean;
+  italic?: boolean;
+  underlined?: boolean;
+  strikethrough?: boolean;
+  obfuscated?: boolean;
+  extra?: ChatObj[];
+}
 
 /**
  * Converts a string into a Chat object
  */
-export function parseChatString (str: string): object {
+export function parseChatString (str: string): ChatObj {
   const chunks = str.split(new RegExp(`${prefix}([^${prefix}])`, 'g'))
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const result: Record<string, any> = {
-    text: chunks.shift(),
+  const result: ChatObj = {
+    text: chunks.shift() ?? '',
     extra: []
   }
 
-  let currentColor = 'reset'
-  let currentFormat = 'reset'
+  let currentColor: EColors | undefined
+  let currentFormat: EFormats | undefined
   for (let chunk of chunks) {
     if (!chunk) continue
     const next = chunk.charAt(0)
-    const color = colors.get(next)
-    const format = formats.get(next)
+    // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+    // @ts-ignore
+    const color = EColors[next]
+    // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+    // @ts-ignore
+    const format = EFormats[next]
     if (color) currentColor = color
     if (format) currentFormat = format
     if (format || color) chunk = chunk.slice(1)
     if (!chunk) continue
-    result.extra.push({
+    const obj: ChatObj = {
       text: chunk,
       color: currentColor,
-      [currentFormat]: true
-    })
+      [currentFormat ?? '']: true
+    }
+    if (!result.extra) result.extra = []
+    result.extra.push(obj)
   }
 
-  if (result.extra.length === 0) delete result.extra
   return result
+}
+
+/**
+ * Takes a Chat object and makes it a string
+ */
+export function stringifyChatObj (chat: ChatObj): string {
+  const { text, color, extra = [], bold, italic, obfuscated, strikethrough, underlined } = chat
+  let result = ''
+
+  // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+  // @ts-ignore
+  if (color) result += prefix + EColors[color]
+  if (bold) result += prefix + EFormats.bold
+  if (italic) result += prefix + EFormats.italic
+  if (obfuscated) result += prefix + EFormats.obfuscated
+  if (strikethrough) result += prefix + EFormats.strikethrough
+  if (underlined) result += prefix + EFormats.underlined
+
+  result += text
+
+  for (const chunk of extra) {
+    result += stringifyChatObj(chunk)
+  }
+
+  return result
+}
+
+export default class Chat extends DataType<string> {
+  protected read (data: Buffer): string {
+    const chat = JSON.parse(new LString(data).value)
+    return stringifyChatObj(chat)
+  }
+
+  protected write (value: string): Buffer {
+    return new LString(JSON.stringify(parseChatString(value))).buffer
+  }
 }

@@ -20,5 +20,5 @@ export const status = {
     online: clients.size,
     sample: []
   },
-  description: parseChatString(process.env.DESCRIPTION ?? '&a&lHello world && &rstuff!')
+  description: parseChatString(process.env.DESCRIPTION ?? '&a&lHello world &&a&l &a&lstuff!\n')
 }

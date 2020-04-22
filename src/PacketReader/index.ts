@@ -18,10 +18,10 @@ export default class PacketReader extends Writable {
    */
   async _write (packet: Buffer, encoding: string, callback: (error?: (Error | null)) => void): Promise<void> {
     // Read packet length, packet id, packet data
-    const packetLength = new VarInt(packet)
+    const packetLength = new VarInt({ buffer: packet })
     packet = packet.slice(packetLength.buffer.length)
 
-    const packetId = new VarInt(packet)
+    const packetId = new VarInt({ buffer: packet })
     packet = packet.slice(packetId.buffer.length)
 
     // Fetch this packet's structure
@@ -42,7 +42,7 @@ export default class PacketReader extends Writable {
         break
       }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const value: DataType<any> = new DT(packet)
+      const value: DataType<any> = new DT({ buffer: packet })
       data.push(value.value)
       packet = packet.slice(value.buffer.length)
     }

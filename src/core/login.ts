@@ -2,31 +2,66 @@ import { EventEmitter } from 'events'
 import crypto from 'crypto'
 import MinecraftClient from '../MinecraftClient'
 import logger from '../logger'
+import ygg from 'yggdrasil'
+import { generateHexDigest } from './auth'
+const { RSA_PKCS1_PADDING } = crypto.constants
+
+const { publicKey, privateKey } = crypto.generateKeyPairSync('rsa', { modulusLength: 1024 })
+const pk = publicKey.export({
+  type: 'spki',
+  format: 'pem'
+})
+const der = Buffer.from((pk as string).trim().split('\n').slice(1, -1).join(''), 'base64')
 
 /**
  * Handles login packets
  */
-export default function login (user: EventEmitter) {
-  user.on('loginStart', (client: MinecraftClient) => {
+export default async function login (user: EventEmitter) {
+  user.on('loginStart', (client: MinecraftClient, username: string) => {
     // Request encryption
-    const serverId = ''
-    const pubKey = Buffer.alloc(0)
-    crypto.randomBytes(4, (error, buf) => {
-      error = { name: 'asd', message: 'hello' }
+    // 128 byte/1024-bit DER(ASN.1 x.509) RSA pk
+    crypto.randomBytes(4, (error, verifyToken) => {
       if (error) {
         logger.error(`Could not generate random bytes - ${error.message}`)
         // Disconnect
         client.write({
           packetId: 0,
-          // TODO: Chat data type that allows for ez colors and stuff
-          data: [JSON.stringify({ text: 'Could not start encryption' })]
+          data: ['&cAn error occurred while initializing encryption. Please try again']
         })
         return
       }
-      const randomBytes = buf
+      client.verifyToken = verifyToken
+      client.username = username
       client.write({
         packetId: 1,
-        data: [serverId, pubKey, randomBytes]
+        data: ['', der, verifyToken]
+      })
+    })
+  })
+
+  user.on('encryptionResponse', (client: MinecraftClient, sharedSecret, verifyToken) => {
+    verifyToken = crypto.privateDecrypt({ key: privateKey, padding: RSA_PKCS1_PADDING }, verifyToken)
+    if (verifyToken.compare(client.verifyToken) !== 0) {
+      logger.warn('Received an invalid verify token')
+      client.close()
+      return
+    }
+    const secret = crypto.privateDecrypt({ key: privateKey, padding: RSA_PKCS1_PADDING }, sharedSecret)
+    client.enableEncryption(secret)
+    // TODO: Implement this myself instead
+    ygg.server({ host: 'https://sessionserver.mojang.com' }).hasJoined(client.username, '', secret, der, (error: Error, profile: Profile) => {
+      if (error) {
+        logger.error(`Could not check whether ${client.username} has joined - ${error.message}`)
+        logger.verbose(error.message)
+        client.close()
+        return
+      }
+      client.uuid = profile.id.replace(/(\w{8})(\w{4})(\w{4})(\w{4})(\w{12})/, '$1-$2-$3-$4-$5')
+      client.username = profile.name
+      client.profile = profile
+      client.write({
+        packetId: 2,
+        data: [client.uuid, client.username]
       })
     })
   })

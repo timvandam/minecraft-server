@@ -4,24 +4,33 @@ import PacketReader from '../PacketReader'
 import PacketDeserializer from '../PacketDeserializer'
 import core from '../core'
 import { Duplex } from 'stream'
-import { outgoingPackets, Packet, PacketData } from '../packets'
+import { outgoingPackets, PacketData } from '../packets'
 import logger from '../logger'
 import VarInt from '../DataTypes/VarInt'
 import { DataType } from '../DataTypes/DataType'
+import { Cipher, createCipheriv, createDecipheriv, Decipher } from 'crypto'
+import { EventEmitter } from 'events'
 
 // List of connected clients
 export const clients: Set<MinecraftClient> = new Set()
 
 /**
  * Represents a user currently connected to the server. Also acts as a packet serializer
- * @todo encryption
  * @todo compression
  * @todo easy methods for plugins to use
+ * @todo write() with packet name instead of id
  */
 export default class MinecraftClient extends Duplex {
   private readonly socket: Socket
   public state: ESocketState = ESocketState.HANDSHAKING
-  public readonly packets: PacketReader
+  public readonly packets: EventEmitter
+  public verifyToken: Buffer = Buffer.alloc(0)
+  private cipher: Cipher|undefined
+  private decipher: Decipher|undefined
+  private deserializer: PacketDeserializer = new PacketDeserializer()
+  public username = ''
+  public profile: Profile|undefined
+  public uuid = ''
 
   // Whether we can currently push data
   private reading = false
@@ -32,13 +41,12 @@ export default class MinecraftClient extends Duplex {
   constructor (socket: Socket) {
     super({ writableObjectMode: true })
     this.socket = socket
-    this.packets = new PacketReader(this)
 
     // Send emitted incoming the the socket
-    this.pipe(socket)
+    this.packets = this.pipe(socket)
       // Read incoming incoming
-      .pipe(new PacketDeserializer())
-      .pipe(this.packets)
+      .pipe(this.deserializer)
+      .pipe(new PacketReader(this))
 
     // Have the core plugin handle incoming incoming
     core(this.packets)
@@ -49,6 +57,28 @@ export default class MinecraftClient extends Duplex {
       clients.delete(this)
       this.end() // this should finish the writable
     })
+  }
+
+  /**
+   * Creates ciphers and enables encryption
+   */
+  enableEncryption (secret: Buffer) {
+    // Create cipher & decipher
+    this.cipher = createCipheriv('AES-128-CFB8', secret, secret)
+    this.decipher = createDecipheriv('AES-128-CFB8', secret, secret)
+    // Insert decipher
+    this.socket.unpipe(this.deserializer)
+    this.socket.pipe(this.decipher).pipe(this.deserializer)
+    // Insert cipher
+    this.unpipe(this.socket)
+    this.pipe(this.cipher).pipe(this.socket)
+  }
+
+  /**
+   * Closes the socket
+   */
+  close () {
+    this.socket.end()
   }
 
   /**
@@ -65,17 +95,17 @@ export default class MinecraftClient extends Duplex {
     if (packetDetails === undefined) throw new Error('Invalid packet!')
 
     const { struct } = packetDetails
-    const packetId = new VarInt(id)
+    const packetId = new VarInt({ value: id })
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const dataArray: DataType<any>[] = []
 
     for (const DT of struct) {
       if (data.length === 0) throw new Error(`Invalid data (missing a ${DT.name})`)
-      dataArray.push(new DT(data.shift()))
+      dataArray.push(new DT({ value: data.shift() }))
     }
 
     const dataBuffer = Buffer.concat(dataArray.map(d => d.buffer))
-    const packetLength = new VarInt(packetId.buffer.length + dataBuffer.length)
+    const packetLength = new VarInt({ value: packetId.buffer.length + dataBuffer.length })
 
     return Buffer.concat([
       packetLength.buffer,

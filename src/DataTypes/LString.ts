@@ -3,7 +3,7 @@ import VarInt from './VarInt'
 
 export default class LString extends DataType<string> {
   protected read (data: Buffer): string {
-    const length = new VarInt(data)
+    const length = new VarInt({ buffer: data })
     const text = data
       .slice(length.buffer.length)
       .slice(0, length.value)
@@ -13,7 +13,7 @@ export default class LString extends DataType<string> {
   }
 
   protected write (value: string): Buffer {
-    const length = new VarInt(value.length)
+    const length = new VarInt({ value: value.length })
     return Buffer.concat([length.buffer, Buffer.from(value, 'utf8')])
   }
 }

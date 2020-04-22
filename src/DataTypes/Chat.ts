@@ -47,9 +47,11 @@ export function parseChatString (str: string): ChatObj {
       color: currentColor,
       [currentFormat ?? '']: true
     }
-    if (!result.extra) result.extra = []
-    result.extra.push(obj)
+    // eslint-disable-next-line no-unused-expressions
+    result.extra?.push(obj)
   }
+
+  if (!result.extra?.length) delete result.extra
 
   return result
 }
@@ -81,11 +83,11 @@ export function stringifyChatObj (chat: ChatObj): string {
 
 export default class Chat extends DataType<string> {
   protected read (data: Buffer): string {
-    const chat = JSON.parse(new LString(data).value)
+    const chat = JSON.parse(new LString({ buffer: data }).value)
     return stringifyChatObj(chat)
   }
 
   protected write (value: string): Buffer {
-    return new LString(JSON.stringify(parseChatString(value))).buffer
+    return new LString({ value: JSON.stringify(parseChatString(value)) }).buffer
   }
 }

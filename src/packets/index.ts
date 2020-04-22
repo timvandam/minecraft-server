@@ -8,6 +8,7 @@ import UShort from '../DataTypes/UShort'
 import logger from '../logger'
 import Long from '../DataTypes/Long'
 import LByteArray from '../DataTypes/LByteArray'
+import Chat from '../DataTypes/Chat'
 
 export interface Packet {
   name: string;
@@ -16,6 +17,7 @@ export interface Packet {
   struct: DataTypeConstructor[];
 }
 
+// TODO: Optional packetId, optional name. Either can be used
 export interface PacketData {
   packetId: number;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -28,6 +30,7 @@ const alphabet: Map<string, DataTypeConstructor> = new Map()
   .set('Us', UShort)
   .set('L', Long)
   .set('Lb', LByteArray)
+  .set('C', Chat)
 
 export function readStruct (struct: string): DataTypeConstructor[] {
   const result: DataTypeConstructor[] = []

@@ -16,7 +16,6 @@ export default class PacketDeserializer extends Duplex {
 
   /**
    * Handles incoming incoming and serializes them
-   * @todo decryption
    * @todo compression
    */
   _write (chunk: Buffer, encoding: string, callback: (error?: (Error | null)) => void): void {
@@ -40,7 +39,7 @@ export default class PacketDeserializer extends Duplex {
       return
     }
     // If there is still data left, read it
-    const packetLength = new VarInt(chunk)
+    const packetLength = new VarInt({ buffer: chunk })
     chunk = chunk.slice(packetLength.buffer.length)
     this.receivedBytes = packetLength.buffer
     this.remainingBytes = packetLength.value

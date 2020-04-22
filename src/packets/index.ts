@@ -7,6 +7,7 @@ import LString from '../DataTypes/LString'
 import UShort from '../DataTypes/UShort'
 import logger from '../logger'
 import Long from '../DataTypes/Long'
+import LByteArray from '../DataTypes/LByteArray'
 
 export interface Packet {
   name: string;
@@ -26,6 +27,7 @@ const alphabet: Map<string, DataTypeConstructor> = new Map()
   .set('S', LString)
   .set('Us', UShort)
   .set('L', Long)
+  .set('Lb', LByteArray)
 
 export function readStruct (struct: string): DataTypeConstructor[] {
   const result: DataTypeConstructor[] = []

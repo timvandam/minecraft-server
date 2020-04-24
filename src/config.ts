@@ -8,9 +8,11 @@ export const logger = {
   logLevel: process.env.NODE_ENV === 'production' ? 'info' : 'verbose'
 }
 
+// MinecraftClient uses logger so we must import it after logger export
+// eslint-disable-next-line import/first
 import { clients } from './MinecraftClient'
 
-export const status = {
+export const status = () => ({
   version: {
     name: '1.15.2',
     protocol: 578
@@ -18,7 +20,9 @@ export const status = {
   players: {
     max: parseInt(process.env.MAX_PLAYERS ?? '100'),
     online: clients.size,
-    sample: []
+    sample: Array.from(clients.keys())
+      .map(client => ({ name: client.username, id: client.uuid }))
+      .filter(player => player.name)
   },
   description: parseChatString(process.env.DESCRIPTION ?? '&a&lHello world && stuff!')
-}
+})

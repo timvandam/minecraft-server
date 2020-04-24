@@ -62,8 +62,6 @@ export default class MinecraftClient extends Duplex {
     // Have the core plugin handle incoming packets
     core(this.packets)
 
-    // Keep track of connected clients
-    clients.add(this)
     socket.once('close', () => {
       clients.delete(this)
       this.end() // this should finish the writable

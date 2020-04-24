@@ -1,5 +1,5 @@
 import { EventEmitter } from 'events'
-import MinecraftClient from '../MinecraftClient'
+import MinecraftClient, { clients } from '../MinecraftClient'
 import { status } from '../config'
 
 /**
@@ -16,7 +16,7 @@ export default function handshake (user: EventEmitter) {
   })
 
   user.on('status', (client: MinecraftClient): void => {
-    const json = JSON.stringify(status)
+    const json = JSON.stringify(status())
     client.send.status(json)
   })
 

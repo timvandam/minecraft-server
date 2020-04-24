@@ -1,6 +1,6 @@
 import { EventEmitter } from 'events'
 import crypto from 'crypto'
-import MinecraftClient from '../MinecraftClient'
+import MinecraftClient, { clients } from '../MinecraftClient'
 import logger from '../logger'
 import { fetchJoinedUser, generateHexDigest } from './auth'
 const { RSA_PKCS1_PADDING } = crypto.constants
@@ -47,6 +47,8 @@ export default async function login (user: EventEmitter) {
       client.username = profile.name
       client.profile = profile
       client.send.loginSuccess(client.uuid, client.username)
+      // Keep track of connected clients
+      clients.add(client)
     } catch (error) {
       logger.error(`Could not check whether ${client.username} has joined - ${error.message}`)
       logger.verbose(error.message)

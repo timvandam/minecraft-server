@@ -17,16 +17,10 @@ export default function handshake (user: EventEmitter) {
 
   user.on('status', (client: MinecraftClient): void => {
     const json = JSON.stringify(status)
-    client.write({
-      name: 'status',
-      data: [json]
-    })
+    client.send.status(json)
   })
 
   user.on('ping', (client: MinecraftClient, num: bigint): void => {
-    client.write({
-      name: 'pong',
-      data: [num]
-    })
+    client.send.pong(num)
   })
 }

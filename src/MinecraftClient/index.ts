@@ -17,13 +17,12 @@ export const clients: Set<MinecraftClient> = new Set()
 
 // Interface representing what you can fetch from the client.send proxy
 interface PacketMethods {
-  [methodName: string]: Function;
+  [methodName: string]: (...data: any[]) => void;
 }
 
 /**
  * Represents a user currently connected to the server. Also acts as a packet serializer
  * @todo compression
- * @todo easy methods for plugins to use
  */
 export default class MinecraftClient extends Duplex {
   private readonly socket: Socket
@@ -36,9 +35,9 @@ export default class MinecraftClient extends Duplex {
   public username = ''
   public profile: Profile|undefined
   public uuid = ''
-  public send = new Proxy<PacketMethods>({}, {
+  public send: PacketMethods = new Proxy({}, {
     get: (target, property) => {
-      return (...data: any[]) => {
+      return (...data: any[]): void => {
         this.write({ name: property, data })
       }
     }

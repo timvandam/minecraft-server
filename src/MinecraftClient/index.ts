@@ -10,6 +10,7 @@ import VarInt from '../DataTypes/VarInt'
 import { DataType } from '../DataTypes/DataType'
 import { Cipher, createCipheriv, createDecipheriv, Decipher } from 'crypto'
 import { EventEmitter } from 'events'
+import { Profile } from '../core/auth'
 
 // List of connected clients
 export const clients: Set<MinecraftClient> = new Set()
@@ -48,7 +49,7 @@ export default class MinecraftClient extends Duplex {
       .pipe(this.deserializer)
       .pipe(new PacketReader(this))
 
-    // Have the core plugin handle incoming incoming
+    // Have the core plugin handle incoming packets
     core(this.packets)
 
     // Keep track of connected clients

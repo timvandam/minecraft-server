@@ -40,7 +40,7 @@ export function generateHexDigest (secret: Buffer, pubKey: Buffer) {
   return result
 }
 
-interface Profile {
+export interface Profile {
   id: string;
   name: string;
   properties: ProfileProperties[];

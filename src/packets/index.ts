@@ -53,22 +53,28 @@ export function readStruct (struct: string): DataTypeConstructor[] {
   return result
 }
 
-interface PacketById {
+interface PacketsById {
   [key: number]: Packet;
 }
 
-interface PacketByESocketStateById {
-  [key: number]: PacketById;
+interface PacketsByName {
+  [key: string]: Packet;
+}
+
+// Packets by socket state by T
+interface PacketsByESocketState<T> {
+  [key: number]: T;
 }
 
 /**
- * Fetches all packets in a directory
+ * Fetches all packets in a directory (by packet id and by name)
  */
-async function getPackets (directory: string): Promise<PacketByESocketStateById> {
+async function getPackets (directory: string): Promise<{ byId: PacketsByESocketState<PacketsById>; byName: PacketsByESocketState<PacketsByName> }> {
   try {
     const dir = await fs.promises.opendir(directory)
 
-    const packets: PacketByESocketStateById = {}
+    const byId: PacketsByESocketState<PacketsById> = {}
+    const byName: PacketsByESocketState<PacketsByName> = {}
 
     for await (const dirent of dir) {
       if (!dirent.isFile()) continue
@@ -79,11 +85,15 @@ async function getPackets (directory: string): Promise<PacketByESocketStateById>
       const packet: Packet = schema
       packet.name = path.basename(dirent.name, '.json')
       const { packetId, state } = packet
-      if (!packets[state]) packets[state] = {}
-      packets[state][packetId] = packet
+      if (!byId[state]) {
+        byId[state] = {}
+        byName[state] = {}
+      }
+      byId[state][packetId] = packet
+      byName[state][packet.name] = packet
     }
 
-    return packets
+    return { byId, byName }
   } catch (error) {
     logger.error(`Could not load packets in directory ${directory} - ${error.message}`)
     logger.verbose(error.stack)
@@ -91,5 +101,5 @@ async function getPackets (directory: string): Promise<PacketByESocketStateById>
   }
 }
 
-export const incomingPackets = getPackets(path.resolve(__dirname, './incoming'))
-export const outgoingPackets = getPackets(path.resolve(__dirname, './outgoing'))
+export const incomingPackets = getPackets(path.resolve(__dirname, './incoming')).then(result => result.byId)
+export const outgoingPackets = getPackets(path.resolve(__dirname, './outgoing')).then(result => result.byName)

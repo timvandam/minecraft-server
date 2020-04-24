@@ -1,13 +1,14 @@
 export interface DataTypeConstructor {
-  new <T>(value: T | Buffer): DataType<T>;
+  new <T>(obj: HasValue<T> | HasBuffer): DataType<T>;
+  new <T>(obj: HasValue<T> | HasBuffer, ...args: any[]): DataType<T>;
 }
 
-interface HasValue<T> {
+export interface HasValue<T> {
   value: T;
   buffer?: undefined;
 }
 
-interface HasBuffer {
+export interface HasBuffer {
   buffer: Buffer;
   value?: undefined;
 }

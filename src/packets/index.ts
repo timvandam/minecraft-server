@@ -9,6 +9,10 @@ import logger from '../logger'
 import Long from '../DataTypes/Long'
 import LByteArray from '../DataTypes/LByteArray'
 import Chat from '../DataTypes/Chat'
+import UUID from '../DataTypes/UUID'
+import Bool from '../DataTypes/Bool'
+import Optional from '../DataTypes/Optional'
+import LArray from '../DataTypes/LArray'
 
 export interface Packet {
   name: string;
@@ -24,6 +28,7 @@ export interface PacketData {
   data: any[];
 }
 
+// TODO: Arrays. Instead of Oc make it O(C) and works for all
 const alphabet: Map<string, DataTypeConstructor> = new Map()
   .set('V', VarInt)
   .set('S', LString)
@@ -31,23 +36,47 @@ const alphabet: Map<string, DataTypeConstructor> = new Map()
   .set('L', Long)
   .set('Lb', LByteArray)
   .set('C', Chat)
+  .set('U', UUID)
+  .set('B', Bool)
 
-export function readStruct (struct: string): DataTypeConstructor[] {
-  const result: DataTypeConstructor[] = []
+const fns: Map<string, Function> = new Map()
+  .set('O', Optional)
+  .set('A', LArray)
+
+export function readStruct (struct: string): any[] {
+  const result: any[] = []
+  const letters = struct.split('')
 
   let symbol = ''
-  for (let i = 0; i < struct.length + 1; i++) {
-    const letter = struct.charAt(i)
-    if (letter === letter.toUpperCase() || letter === '') {
-      // This is the start of a new datatype, flush the old one
-      if (symbol !== '') {
-        const datatype = alphabet.get(symbol)
-        if (!datatype) throw new Error(`Invalid symbol found in struct: ${symbol}`)
-        result.push(datatype)
-      }
-      symbol = ''
-    }
+  while (letters.length) {
+    const letter = letters.shift() as string
+    const next = letters[0] ?? ''
     symbol += letter
+    if (next !== '(' && next.toUpperCase() === next) {
+      const DT = alphabet.get(symbol)
+      result.push(DT)
+      symbol = ''
+      continue
+    } else if (next !== '(' && next.toLowerCase() === next) continue
+
+    const FN = fns.get(symbol)
+    if (FN) {
+      let functionParam = ''
+      const stack = [letters.shift()] // add the first (
+      if (stack[0] !== '(') throw new Error('Functions must open with a (!')
+      while (stack.length) {
+        const nextChar = letters.shift()
+        functionParam += nextChar
+        if (nextChar === '(') stack.push('(')
+        else if (nextChar === ')') stack.pop()
+      }
+      functionParam = functionParam.slice(0, -1) // remove the last character, as it is a )
+      result.push(FN(...readStruct(functionParam)))
+      symbol = ''
+      continue
+    }
+
+    throw new Error(`Invalid symbol '${letter}'!`)
   }
 
   return result

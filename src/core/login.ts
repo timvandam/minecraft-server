@@ -46,9 +46,12 @@ export default async function login (user: EventEmitter) {
       client.uuid = profile.id.replace(/(\w{8})(\w{4})(\w{4})(\w{4})(\w{12})/, '$1-$2-$3-$4-$5')
       client.username = profile.name
       client.profile = profile
+      // TODO: Allow different thresholds
       client.send.setCompression(0, () => {
         client.enableCompression()
         client.send.loginSuccess(client.uuid, client.username)
+        //TODO: Make this work
+        // client.send.addPlayerInfo(client.username, [{ name:  }])
       })
     } catch (error) {
       logger.error(`Could not check whether ${client.username} has joined - ${error.message}`)

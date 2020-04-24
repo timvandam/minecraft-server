@@ -1,11 +1,12 @@
 import { Duplex } from 'stream'
 import PacketDeserializer from '../'
+import MinecraftClient from '../../MinecraftClient'
 
 let stream: Duplex
 let done: Promise<undefined>
 let packets: Buffer[]
 beforeEach(() => {
-  stream = new PacketDeserializer()
+  stream = new PacketDeserializer(Object.create(MinecraftClient.prototype, {}))
   done = new Promise(resolve => stream.once('end', () => resolve()))
   packets = []
   stream.on('data', packet => {
@@ -27,7 +28,7 @@ it('works when providing multiple whole incoming at once', async () => {
   expect(packets[0]).toEqual(Buffer.from('0102', 'hex'))
 })
 
-it('works when providing multiple incoming seperately', async () => {
+it('works when providing multiple incoming separately', async () => {
   stream.write(Buffer.from('0102', 'hex'))
   stream.end(Buffer.from('0102', 'hex'))
   await done
@@ -36,4 +37,10 @@ it('works when providing multiple incoming seperately', async () => {
   expect(packets[0]).toEqual(Buffer.from('0102', 'hex'))
 })
 
-// TODO: Incomplete incoming
+it('works when providing one packet in multiple writes', async () => {
+  stream.write(Buffer.from('01', 'hex'))
+  stream.end(Buffer.from('02', 'hex'))
+  await done
+  expect(packets.length).toBe(1)
+  expect(packets[0]).toEqual(Buffer.from('0102', 'hex'))
+})

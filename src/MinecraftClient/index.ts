@@ -11,6 +11,7 @@ import { DataType } from '../DataTypes/DataType'
 import { Cipher, createCipheriv, createDecipheriv, Decipher } from 'crypto'
 import { Profile } from '../core/auth'
 import zlib from 'zlib'
+import * as helpers from './helperMethods'
 
 // List of connected clients
 export const clients: Set<MinecraftClient> = new Set()
@@ -35,8 +36,10 @@ export default class MinecraftClient extends Duplex {
   public profile: Profile|undefined
   public uuid = ''
   public compression = false
-  public send: PacketMethods = new Proxy({}, {
-    get: (target, property) => {
+  // TODO: Provide an object with some convenience methods (e.g. Player Info with action bound)
+  public send: PacketMethods = new Proxy<PacketMethods>(helpers ?? {}, {
+    get: (target, property: string) => {
+      if (target[property]) return target[property].bind(this)
       return (...data: any[]): void => {
         let callback = data.pop()
         if (typeof callback !== 'function') {

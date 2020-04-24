@@ -17,9 +17,9 @@ export interface Packet {
   struct: DataTypeConstructor[];
 }
 
-// TODO: Optional packetId, optional name. Either can be used
 export interface PacketData {
-  packetId: number;
+  packetId?: number;
+  name?: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data: any[];
 }
@@ -97,7 +97,7 @@ async function getPackets (directory: string): Promise<{ byId: PacketsByESocketS
   } catch (error) {
     logger.error(`Could not load packets in directory ${directory} - ${error.message}`)
     logger.verbose(error.stack)
-    return {}
+    return { byId: {}, byName: {} }
   }
 }
 

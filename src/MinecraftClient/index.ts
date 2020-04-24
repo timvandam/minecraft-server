@@ -86,16 +86,16 @@ export default class MinecraftClient extends Duplex {
    * Transforms a Packet into a buffer
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private async serializePacket (id: number, ...data: any[]): Promise<Buffer> {
+  private async serializePacket (name: string|undefined, ...data: any[]): Promise<Buffer> {
     /* Packet Structure:
      * Length   - VarInt
      * PacketID - VarInt
      * Data     - ByteArray
      */
-    const packetDetails = (await outgoingPackets)?.[this.state]?.[id]
-    if (packetDetails === undefined) throw new Error('Invalid packet!')
+    const packetDetails = (await outgoingPackets)?.[this.state]?.[name ?? '']
+    if (packetDetails === undefined) throw new Error('Invalid packet name!')
 
-    const { struct } = packetDetails
+    const { struct, packetId: id } = packetDetails
     const packetId = new VarInt({ value: id })
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const dataArray: DataType<any>[] = []
@@ -120,8 +120,8 @@ export default class MinecraftClient extends Duplex {
    */
   async _write (packetData: PacketData, encoding: string, callback: (error?: (Error | null)) => void): Promise<void> {
     try {
-      const { packetId, data } = packetData
-      const buffer = await this.serializePacket(packetId, ...data)
+      const { name, data } = packetData
+      const buffer = await this.serializePacket(name, ...data)
 
       if (this.reading) this.reading = this.push(buffer)
       else this.buffer.push(buffer)
@@ -140,8 +140,8 @@ export default class MinecraftClient extends Duplex {
     try {
       let result = Buffer.allocUnsafe(0)
       for (const { chunk: packetData } of chunks) {
-        const { packetId, data } = packetData
-        const buffer = await this.serializePacket(packetId, ...data)
+        const { name, data } = packetData
+        const buffer = await this.serializePacket(name, ...data)
 
         result = Buffer.concat([result, buffer])
       }

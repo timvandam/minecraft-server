@@ -40,9 +40,25 @@ export function generateHexDigest (secret: Buffer, pubKey: Buffer) {
   return result
 }
 
+interface Profile {
+  id: string;
+  name: string;
+  properties: ProfileProperties[];
+}
+
+interface ProfileProperties {
+  name: string;
+  value: string;
+  signature: string;
+}
+
 /**
  * Fetches a joined user's profile from mojang
  */
-export function fetchJoinedUser (username: string, digest: Buffer) {
-
+export function fetchJoinedUser (username: string, digest: string): Promise<Profile> {
+  return axios.get(`https://sessionserver.mojang.com/session/minecraft/hasJoined?username=${username}&serverId=${digest}`)
+    .then(response => {
+      if (response.status !== 200) return Promise.reject(new Error(`Non-200 status code (${response.status})`))
+      return response.data
+    })
 }

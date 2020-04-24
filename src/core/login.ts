@@ -3,7 +3,7 @@ import crypto from 'crypto'
 import MinecraftClient from '../MinecraftClient'
 import logger from '../logger'
 import ygg from 'yggdrasil'
-import { generateHexDigest } from './auth'
+import { fetchJoinedUser, generateHexDigest } from './auth'
 const { RSA_PKCS1_PADDING } = crypto.constants
 
 const { publicKey, privateKey } = crypto.generateKeyPairSync('rsa', { modulusLength: 1024 })
@@ -39,7 +39,7 @@ export default async function login (user: EventEmitter) {
     })
   })
 
-  user.on('encryptionResponse', (client: MinecraftClient, sharedSecret, verifyToken) => {
+  user.on('encryptionResponse', async (client: MinecraftClient, sharedSecret, verifyToken) => {
     verifyToken = crypto.privateDecrypt({ key: privateKey, padding: RSA_PKCS1_PADDING }, verifyToken)
     if (verifyToken.compare(client.verifyToken) !== 0) {
       logger.warn('Received an invalid verify token')
@@ -49,13 +49,9 @@ export default async function login (user: EventEmitter) {
     const secret = crypto.privateDecrypt({ key: privateKey, padding: RSA_PKCS1_PADDING }, sharedSecret)
     client.enableEncryption(secret)
     // TODO: Implement this myself instead
-    ygg.server({ host: 'https://sessionserver.mojang.com' }).hasJoined(client.username, '', secret, der, (error: Error, profile: Profile) => {
-      if (error) {
-        logger.error(`Could not check whether ${client.username} has joined - ${error.message}`)
-        logger.verbose(error.message)
-        client.close()
-        return
-      }
+    try {
+      const hexdigest = generateHexDigest(secret, der)
+      const profile = await fetchJoinedUser(client.username, hexdigest)
       client.uuid = profile.id.replace(/(\w{8})(\w{4})(\w{4})(\w{4})(\w{12})/, '$1-$2-$3-$4-$5')
       client.username = profile.name
       client.profile = profile
@@ -63,6 +59,10 @@ export default async function login (user: EventEmitter) {
         packetId: 2,
         data: [client.uuid, client.username]
       })
-    })
+    } catch (error) {
+      logger.error(`Could not check whether ${client.username} has joined - ${error.message}`)
+      logger.verbose(error.message)
+      client.close()
+    }
   })
 }

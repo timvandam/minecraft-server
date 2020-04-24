@@ -1,5 +1,7 @@
 import { Duplex } from 'stream'
 import VarInt from '../DataTypes/VarInt'
+import MinecraftClient from '../MinecraftClient'
+import zlib from 'zlib'
 
 export default class PacketDeserializer extends Duplex {
   // The packet currently being read
@@ -14,15 +16,26 @@ export default class PacketDeserializer extends Duplex {
   // Whether we should push data live
   private reading = false
 
+  private readonly client: MinecraftClient
+
+  constructor (client: MinecraftClient) {
+    super()
+    this.client = client
+  }
+
   /**
    * Handles incoming incoming and serializes them
-   * @todo compression
    */
   _write (chunk: Buffer, encoding: string, callback: (error?: (Error | null)) => void): void {
     /* Packet Format:
     * Length   - VarInt
     * PacketId - VarInt
     * Data     - Buffer
+    *
+    * Compressed:
+    * Length      - VarInt
+    * Data Length - VarInt
+    * Compressed PacketID + Data - VarInt & DataArray
     * */
     // If we are currently still reading a packet, read the amount of bytes it still needs
     if (this.remainingBytes !== 0) {
@@ -50,6 +63,16 @@ export default class PacketDeserializer extends Duplex {
    * Adds the current packet to the buffer
    */
   private addPacket (): void {
+    // Uncompress if the packet was compressed
+    if (this.client.compression) {
+      const packetLength = new VarInt({ buffer: this.receivedBytes })
+      const dataLength = new VarInt({ buffer: this.receivedBytes.slice(packetLength.buffer.length) })
+      const compressed = this.receivedBytes.slice(packetLength.buffer.length + dataLength.buffer.length)
+      const uncompressed = zlib.inflateSync(compressed)
+      const newPacketLength = new VarInt({ value: packetLength.value - dataLength.buffer.length })
+      this.receivedBytes = Buffer.concat([newPacketLength.buffer, uncompressed])
+    }
+
     if (this.reading) this.reading = this.push(this.receivedBytes)
     else this.buffer.push(this.receivedBytes)
     this.receivedBytes = Buffer.allocUnsafe(0)

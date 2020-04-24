@@ -1,5 +1,5 @@
 import { EventEmitter } from 'events'
-import MinecraftClient, { clients } from '../MinecraftClient'
+import MinecraftClient from '../MinecraftClient'
 import { status } from '../config'
 
 /**

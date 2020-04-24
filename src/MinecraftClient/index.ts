@@ -9,8 +9,8 @@ import logger from '../logger'
 import VarInt from '../DataTypes/VarInt'
 import { DataType } from '../DataTypes/DataType'
 import { Cipher, createCipheriv, createDecipheriv, Decipher } from 'crypto'
-import { EventEmitter } from 'events'
 import { Profile } from '../core/auth'
+import zlib from 'zlib'
 
 // List of connected clients
 export const clients: Set<MinecraftClient> = new Set()
@@ -22,23 +22,28 @@ interface PacketMethods {
 
 /**
  * Represents a user currently connected to the server. Also acts as a packet serializer
- * @todo compression
  */
 export default class MinecraftClient extends Duplex {
   private readonly socket: Socket
   public state: ESocketState = ESocketState.HANDSHAKING
-  public readonly packets: EventEmitter
   public verifyToken: Buffer = Buffer.alloc(0)
   private cipher: Cipher|undefined
   private decipher: Decipher|undefined
-  private deserializer: PacketDeserializer = new PacketDeserializer()
+  private readonly deserializer: PacketDeserializer = new PacketDeserializer(this)
+  public readonly packets: PacketReader = new PacketReader(this)
   public username = ''
   public profile: Profile|undefined
   public uuid = ''
+  public compression = false
   public send: PacketMethods = new Proxy({}, {
     get: (target, property) => {
       return (...data: any[]): void => {
-        this.write({ name: property, data })
+        let callback = data.pop()
+        if (typeof callback !== 'function') {
+          data.push(callback)
+          callback = undefined
+        }
+        this.write({ name: property, data }, callback)
       }
     }
   })
@@ -57,15 +62,24 @@ export default class MinecraftClient extends Duplex {
     this.packets = this.pipe(socket)
       // Read incoming incoming
       .pipe(this.deserializer)
-      .pipe(new PacketReader(this))
+      .pipe(this.packets)
 
     // Have the core plugin handle incoming packets
     core(this.packets)
 
+    // Keep track of connected clients
+    clients.add(this)
     socket.once('close', () => {
       clients.delete(this)
       this.end() // this should finish the writable
     })
+  }
+
+  /**
+   * Enables compression
+   */
+  enableCompression () {
+    this.compression = true
   }
 
   /**
@@ -114,13 +128,34 @@ export default class MinecraftClient extends Duplex {
     }
 
     const dataBuffer = Buffer.concat(dataArray.map(d => d.buffer))
-    const packetLength = new VarInt({ value: packetId.buffer.length + dataBuffer.length })
+    let packetLength = new VarInt({ value: packetId.buffer.length + dataBuffer.length })
 
-    return Buffer.concat([
-      packetLength.buffer,
-      packetId.buffer,
-      dataBuffer
-    ])
+    if (!this.compression) {
+      return Buffer.concat([
+        packetLength.buffer,
+        packetId.buffer,
+        dataBuffer
+      ])
+    }
+
+    return new Promise((resolve, reject) => {
+      zlib.deflate(Buffer.concat([packetId.buffer, dataBuffer]), (error, compressed) => {
+        if (error) {
+          logger.error(`Something went wrong while compressing a packet - ${error.message}`)
+          logger.verbose(error.stack ?? 'This error doesnt even have a stack.. WEAK')
+          reject(error)
+          return
+        }
+        const dataLength = packetLength
+        packetLength = new VarInt({ value: compressed.length + dataLength.buffer.length })
+        const packet = Buffer.concat([
+          packetLength.buffer,
+          dataLength.buffer,
+          compressed
+        ])
+        resolve(packet)
+      })
+    })
   }
 
   /**

@@ -12,17 +12,21 @@ export const logger = {
 // eslint-disable-next-line import/first
 import { clients } from './MinecraftClient'
 
-export const status = () => ({
-  version: {
-    name: '1.15.2',
-    protocol: 578
-  },
-  players: {
-    max: parseInt(process.env.MAX_PLAYERS ?? '100'),
-    online: clients.size,
-    sample: Array.from(clients.keys())
-      .map(client => ({ name: client.username, id: client.uuid }))
-      .filter(player => player.name)
-  },
-  description: parseChatString(process.env.DESCRIPTION ?? '&a&lHello world && stuff!')
-})
+export const status = () => {
+  const players = Array.from(clients.keys())
+    .map(player => ({ name: player.username, id: player.uuid }))
+    .filter(client => client.id) // only show logged in users
+
+  return {
+    version: {
+      name: '1.15.2',
+      protocol: 578
+    },
+    players: {
+      max: parseInt(process.env.MAX_PLAYERS ?? '100'),
+      online: players.length,
+      sample: players
+    },
+    description: parseChatString(process.env.DESCRIPTION ?? '&a&lHello world && stuff!')
+  }
+}

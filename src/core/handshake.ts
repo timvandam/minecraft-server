@@ -18,14 +18,14 @@ export default function handshake (user: EventEmitter) {
   user.on('status', (client: MinecraftClient): void => {
     const json = JSON.stringify(status)
     client.write({
-      packetId: 0,
+      name: 'status',
       data: [json]
     })
   })
 
   user.on('ping', (client: MinecraftClient, num: bigint): void => {
     client.write({
-      packetId: 1,
+      name: 'pong',
       data: [num]
     })
   })

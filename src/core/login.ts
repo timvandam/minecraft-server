@@ -2,7 +2,6 @@ import { EventEmitter } from 'events'
 import crypto from 'crypto'
 import MinecraftClient from '../MinecraftClient'
 import logger from '../logger'
-import ygg from 'yggdrasil'
 import { fetchJoinedUser, generateHexDigest } from './auth'
 const { RSA_PKCS1_PADDING } = crypto.constants
 
@@ -25,7 +24,7 @@ export default async function login (user: EventEmitter) {
         logger.error(`Could not generate random bytes - ${error.message}`)
         // Disconnect
         client.write({
-          packetId: 0,
+          name: 'loginDisconnect',
           data: ['&cAn error occurred while initializing encryption. Please try again']
         })
         return
@@ -33,7 +32,7 @@ export default async function login (user: EventEmitter) {
       client.verifyToken = verifyToken
       client.username = username
       client.write({
-        packetId: 1,
+        name: 'encryptionRequest',
         data: ['', der, verifyToken]
       })
     })
@@ -48,7 +47,6 @@ export default async function login (user: EventEmitter) {
     }
     const secret = crypto.privateDecrypt({ key: privateKey, padding: RSA_PKCS1_PADDING }, sharedSecret)
     client.enableEncryption(secret)
-    // TODO: Implement this myself instead
     try {
       const hexdigest = generateHexDigest(secret, der)
       const profile = await fetchJoinedUser(client.username, hexdigest)
@@ -56,7 +54,7 @@ export default async function login (user: EventEmitter) {
       client.username = profile.name
       client.profile = profile
       client.write({
-        packetId: 2,
+        name: 'loginSuccess',
         data: [client.uuid, client.username]
       })
     } catch (error) {

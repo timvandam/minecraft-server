@@ -31,10 +31,12 @@ export default async function login (user: EventEmitter) {
       }
       client.verifyToken = verifyToken
       client.username = username
-      client.write({
-        name: 'encryptionRequest',
-        data: ['', der, verifyToken]
-      })
+      // TODO: Proxy for sending packets. `client.send.encryptionRequest(data)`
+      client.send.encryptionRequest('', der, verifyToken)
+      // client.write({
+      //   name: 'encryptionRequest',
+      //   data: ['', der, verifyToken]
+      // })
     })
   })
 

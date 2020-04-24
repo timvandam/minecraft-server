@@ -15,11 +15,15 @@ import { Profile } from '../core/auth'
 // List of connected clients
 export const clients: Set<MinecraftClient> = new Set()
 
+// Interface representing what you can fetch from the client.send proxy
+interface PacketMethods {
+  [methodName: string]: Function;
+}
+
 /**
  * Represents a user currently connected to the server. Also acts as a packet serializer
  * @todo compression
  * @todo easy methods for plugins to use
- * @todo write() with packet name instead of id
  */
 export default class MinecraftClient extends Duplex {
   private readonly socket: Socket
@@ -32,6 +36,13 @@ export default class MinecraftClient extends Duplex {
   public username = ''
   public profile: Profile|undefined
   public uuid = ''
+  public send = new Proxy<PacketMethods>({}, {
+    get: (target, property) => {
+      return (...data: any[]) => {
+        this.write({ name: property, data })
+      }
+    }
+  })
 
   // Whether we can currently push data
   private reading = false

@@ -11,8 +11,8 @@ This project is structured into a few modules
 import { Server, Socket } from 'net'
 import * as config from './config'
 import logger from './logger'
-import MinecraftClient from './MinecraftClient'
-import VarInt from './DataTypes/VarInt'
+import MinecraftClient, { clients } from './MinecraftClient'
+import { ESocketState } from './enums/ESocketState'
 
 export const server = new Server()
 
@@ -29,3 +29,14 @@ server.on('error', error => logger.error(`An unexpected server error occurred - 
 server.listen({
   port: config.server.port
 }, () => logger.info(`Server listening on port ${config.server.port}`))
+
+// Send time updates to all players every second
+let time = 0n
+setInterval(() => {
+  time += 20n
+  const tod = time % 24000n
+  clients.forEach((player: MinecraftClient) => {
+    if (player.state !== ESocketState.PLAY) return
+    player.send.timeUpdate(time, tod)
+  })
+}, 1000)

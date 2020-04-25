@@ -1,8 +1,10 @@
 import { EventEmitter } from 'events'
 import crypto from 'crypto'
-import MinecraftClient, { clients } from '../MinecraftClient'
+import MinecraftClient from '../MinecraftClient'
 import logger from '../logger'
 import { fetchJoinedUser, generateHexDigest } from './auth'
+import { ESocketState } from '../enums/ESocketState'
+
 const { RSA_PKCS1_PADDING } = crypto.constants
 
 const { publicKey, privateKey } = crypto.generateKeyPairSync('rsa', { modulusLength: 1024 })
@@ -49,9 +51,19 @@ export default async function login (user: EventEmitter) {
       // TODO: Allow different thresholds
       client.send.setCompression(0, () => {
         client.enableCompression()
-        client.send.loginSuccess(client.uuid, client.username)
-        //TODO: Make this work
-        // client.send.addPlayerInfo(client.username, [{ name:  }])
+        client.send.loginSuccess(client.uuid, client.username, () => {
+          client.state = ESocketState.PLAY
+          // TODO: Make this work
+          client.send.addPlayerInfo([{
+            uuid: client.uuid,
+            properties: [],
+            name: client.username,
+            gamemode: 0,
+            ping: 0,
+            hasDisplayName: true,
+            displayName: 'hello'
+          }])
+        })
       })
     } catch (error) {
       logger.error(`Could not check whether ${client.username} has joined - ${error.message}`)

@@ -20,8 +20,8 @@ interface Player {
 }
 
 interface AddPlayer extends Player {
+  uuid: string;
   name: string;
-  propertyCount: number;
   properties: AddPlayerProperty[];
   gamemode: number;
   ping: number;
@@ -36,10 +36,24 @@ interface AddPlayerProperty {
   signature?: string;
 }
 
-// TODO: Make this work (array datatype)
+// Check whether this actually works
 export function addPlayerInfo (this: MinecraftClient, players: AddPlayer[]) {
+  const playerArr: any[] = []
+  players.forEach(player => playerArr.push([
+    player.uuid,
+    player.name,
+    player.properties.map(property => {
+      const prop = [property.name, property.value, property.signed]
+      if (property.signed && property.signature) prop.push(property.signature)
+      return prop
+    }),
+    player.gamemode,
+    player.ping,
+    player.hasDisplayName,
+    player.displayName
+  ]))
   this.write({
     name: 'playerInfoAddPlayer',
-    data: [EPlayerInfoAction.ADD_PLAYER, players.length]
+    data: [EPlayerInfoAction.ADD_PLAYER, playerArr]
   })
 }

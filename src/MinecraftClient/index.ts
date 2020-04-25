@@ -118,7 +118,7 @@ export default class MinecraftClient extends Duplex {
      * Data     - ByteArray
      */
     const packetDetails = (await outgoingPackets)?.[this.state]?.[name ?? '']
-    if (packetDetails === undefined) throw new Error('Invalid packet name!')
+    if (packetDetails === undefined) throw new Error(`Invalid packet name '${name}'`)
 
     const { struct, packetId: id } = packetDetails
     const packetId = new VarInt({ value: id })

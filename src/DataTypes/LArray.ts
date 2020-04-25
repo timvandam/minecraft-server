@@ -24,17 +24,21 @@ export default function (...DTs: DataTypeConstructor[]) {
       return result
     }
 
-    protected write (value: any[]): Buffer {
+    protected write (values: any[]): Buffer {
       const array = []
 
-      // Add buffers for each dt found
-      for (const DT of DTs) {
-        array.push(new DT({ value: value.shift() }).buffer)
-      }
-
       // Add array length to the start
-      const length = new VarInt({ value: array.length })
+      const length = new VarInt({ value: values.length })
       array.unshift(length.buffer)
+
+      // For each element of the array, read them using the provided datatypes
+      while (values.length) {
+        const value = values.shift()
+        // Add buffers for each dt found
+        for (const DT of DTs) {
+          array.push(new DT({ value: value.shift() }).buffer)
+        }
+      }
 
       return Buffer.concat(array)
     }

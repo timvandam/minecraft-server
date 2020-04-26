@@ -1,3 +1,6 @@
+// This file consists of helper methods which can be used if sending regular packets is not convenient
+// For example packets whose format changes depending on some variable
+
 /**
  * Add a player to the TAB player menu
  */
@@ -7,29 +10,21 @@ import Bool from '../DataTypes/Bool'
 import { DataTypeConstructor } from '../DataTypes/DataType'
 import { EPlayerInfoAction } from '../enums/EPlayerInfoAction'
 
-// Properties that are sent
-interface Property {
-  name: string;
-  value: string;
-  signed: boolean;
-  signature?: string; // only present when signed is true
-}
-
 interface Player {
   UUID: string;
 }
 
-interface AddPlayer extends Player {
+interface PlayerToAdd extends Player {
   uuid: string;
   name: string;
-  properties: AddPlayerProperty[];
+  properties: PlayerToAddProperty[];
   gamemode: number;
   ping: number;
   hasDisplayName: boolean;
   displayName?: string;
 }
 
-interface AddPlayerProperty {
+interface PlayerToAddProperty {
   name: string;
   value: string;
   signed: boolean;
@@ -37,7 +32,7 @@ interface AddPlayerProperty {
 }
 
 // Check whether this actually works
-export function addPlayerInfo (this: MinecraftClient, players: AddPlayer[]) {
+export function addPlayerInfo (this: MinecraftClient, players: PlayerToAdd[]) {
   const playerArr: any[] = []
   players.forEach(player => playerArr.push([
     player.uuid,
@@ -53,7 +48,7 @@ export function addPlayerInfo (this: MinecraftClient, players: AddPlayer[]) {
     player.displayName
   ]))
   this.write({
-    name: 'playerInfoAddPlayer',
+    name: 'playerInfoAddPlayers',
     data: [EPlayerInfoAction.ADD_PLAYER, playerArr]
   })
 }

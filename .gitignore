@@ -5,3 +5,4 @@ src/**/*.*.js
 src/*.*.js
 src/*.js
 logs
+yarn-error.log

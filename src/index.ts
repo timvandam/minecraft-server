@@ -32,6 +32,7 @@ server.listen({
 
 // Send time updates to all players every second
 let time = 0n
+// TODO: Per client
 setInterval(() => {
   time += 20n
   const tod = time % 24000n

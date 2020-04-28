@@ -1,10 +1,9 @@
 // These datatypes are for Java edition Minecraft - so big endian stuff
+// TODO: move these to seperate files noob
 
 import { DataType, DataTypeConstructor } from '../../DataType'
 import { ENBTTag } from '../../../enums/ENBTTag'
 import { promises as fs } from 'fs'
-import path from 'path'
-
 interface NBTTagConstructor extends DataTypeConstructor {
   id: ENBTTag;
 }

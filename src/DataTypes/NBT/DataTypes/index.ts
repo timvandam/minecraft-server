@@ -2,6 +2,8 @@
 
 import { DataType, DataTypeConstructor } from '../../DataType'
 import { ENBTTag } from '../../../enums/ENBTTag'
+import { promises as fs } from 'fs'
+import path from 'path'
 
 interface NBTTagConstructor extends DataTypeConstructor {
   id: ENBTTag;
@@ -142,7 +144,7 @@ export class ByteArray extends NBTTag<number[]> {
   public static id = ENBTTag.ByteArray
 
   protected read (data: Buffer): number[] {
-    const length = new Byte({ buffer: data })
+    const length = new Int({ buffer: data })
     data = data.slice(length.buffer.length)
     const result: number[] = []
     for (let i = 0; i < length.value; i++) {
@@ -154,7 +156,7 @@ export class ByteArray extends NBTTag<number[]> {
 
   protected write (values: number[]): Buffer {
     // Compute the length byte, then get all the numbers as bytes
-    const length = byte(values.length)
+    const length = int(values.length)
     return Buffer.concat([length.buffer, ...values.map(value => byte(value).buffer)])
   }
 }
@@ -221,7 +223,7 @@ export const List: NBTGenerator = (Type?: NBTTagConstructor): NBTTagConstructor 
     ])
   }
 }
-export const list = (Type: NBTTagConstructor) => (...values: any[]): NBTTag<any> => new (List(Type))({ value: values })
+export const list = (Type: NBTTagConstructor) => (...value: any[]): NBTTag<any> => new (List(Type))({ value })
 types.set(ENBTTag.List, List)
 
 // Pretty much the NBT equivalent of an object
@@ -229,10 +231,21 @@ types.set(ENBTTag.List, List)
 export class Compound extends NBTTag<Record<string, NBTTag<any>>> {
   public static id = ENBTTag.Compound
 
+  // Returns the value but instead of NBT Types uses JS types
+  get json (): Record<string, any> {
+    const result: Record<string, any> = {}
+
+    Object.entries(this.value).forEach(([key, value]) => {
+      result[key] = value?.json ?? value.value
+    })
+
+    return result
+  }
+
   protected read (data: Buffer): Record<string, NBTTag<any>> {
     const result: Record<string, NBTTag<any>> = {}
 
-    while (data.readUInt8() !== 0x00) {
+    while (data.length && data.readUInt8() !== 0x00) {
       // Type, name length, name
       const type = data.readUInt8()
       data = data.slice(1)
@@ -241,9 +254,9 @@ export class Compound extends NBTTag<Record<string, NBTTag<any>>> {
       const name = data.slice(0, length).toString('utf8')
       data = data.slice(length)
       let Type = types.get(type)
-      if (typeof Type === 'function') Type = (Type as NBTGenerator)()
+      if (((Type as NBTTagConstructor)?.id) === undefined && typeof Type === 'function') Type = (Type as NBTGenerator)()
       else if (Type === undefined) throw new Error('Invalid type!')
-      const info = new Type({ buffer: data })
+      const info = new (Type as NBTTagConstructor)({ buffer: data })
       data = data.slice(info.buffer.length)
       result[name] = info
     }
@@ -258,9 +271,11 @@ export class Compound extends NBTTag<Record<string, NBTTag<any>>> {
     if (value instanceof NBTTag) {
       // Its an NBT tag!
       result = value
+    } else if (typeof value === 'bigint') {
+      result = long(value)
     } else if (Array.isArray(value)) {
-      const firstType = value.length === 0 ? End : value[0].constructor
-      result = list(firstType)(...value)
+      const firstType = value.length === 0 ? End : (Compound.convertValue(value[0]).constructor as NBTTagConstructor)
+      result = list(firstType)(...value.map(val => val.value)) // we need to take their values because List will read them again
     } else if (typeof value === 'string') {
       result = string(value)
     } else if (typeof value === 'object') {
@@ -270,7 +285,9 @@ export class Compound extends NBTTag<Record<string, NBTTag<any>>> {
         obj[key] = Compound.convertValue(value)
       })
       result = new Compound({ value: obj })
-    } else throw new Error(`Invalid value of type ${typeof value}`)
+    } else {
+      throw new Error(`Invalid value of type ${typeof value}`)
+    }
 
     return result
   }
@@ -317,4 +334,56 @@ export class Compound extends NBTTag<Record<string, NBTTag<any>>> {
 const compound = (value: Record<string, any>): Compound => new Compound({ value })
 types.set(Compound.id, Compound)
 
-// TODO: IntArray, LongArray.
+// Array of Ints prefixed by an Int indicating its length
+export class IntArray extends NBTTag<number[]> {
+  public static id = ENBTTag.IntArray
+
+  protected read (data: Buffer): number[] {
+    const length = new Int({ buffer: data })
+    data = data.slice(4)
+    const result: number[] = []
+
+    for (let i = 0; i < length.value; i++) {
+      result.push(new Int({ buffer: data }).value)
+      data = data.slice(4)
+    }
+
+    return result
+  }
+
+  protected write (values: number[]): Buffer {
+    return Buffer.concat([
+      int(values.length).buffer,
+      ...values.map(value => int(value).buffer)
+    ])
+  }
+}
+export const intarray = (...value: number[]): IntArray => new IntArray({ value })
+types.set(IntArray.id, IntArray)
+
+// Array of Longs prefixed by its length (Int)
+export class LongArray extends NBTTag<bigint[]> {
+  public static id = ENBTTag.LongArray
+
+  protected read (data: Buffer): bigint[] {
+    const length = new Int({ buffer: data })
+    data = data.slice(4)
+    const result: bigint[] = []
+
+    for (let i = 0; i < length.value; i++) {
+      result.push(new Long({ buffer: data }).value)
+      data = data.slice(8)
+    }
+
+    return result
+  }
+
+  protected write (values: bigint[]): Buffer {
+    return Buffer.concat([
+      int(values.length).buffer,
+      ...values.map(value => long(value).buffer)
+    ])
+  }
+}
+export const longarray = (...value: bigint[]): LongArray => new LongArray({ value })
+types.set(LongArray.id, LongArray)

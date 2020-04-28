@@ -40,14 +40,9 @@ export default class MinecraftClient extends Duplex {
   public send: PacketMethods = new Proxy<PacketMethods>(helpers ?? {}, {
     get: (target, property: string) => {
       if (target[property]) return target[property].bind(this)
-      return (...data: any[]): void => {
-        let callback = data.pop()
-        if (typeof callback !== 'function') {
-          data.push(callback)
-          callback = undefined
-        }
-        this.write({ name: property, data }, callback)
-      }
+      return (...data: any[]): Promise<void> => new Promise((resolve, reject) =>
+        this.write({ name: property, data }, (error: Error|null|undefined) => error ? reject(error) : resolve())
+      )
     }
   })
 

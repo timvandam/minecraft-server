@@ -13,6 +13,9 @@ import UUID from '../DataTypes/UUID'
 import Bool from '../DataTypes/Bool'
 import Optional from '../DataTypes/Optional'
 import LArray from '../DataTypes/LArray'
+import { NBT } from '../DataTypes/NBT'
+import { UByte } from '../DataTypes/UByte'
+import { Int } from '../DataTypes/Int'
 
 export interface Packet {
   name: string;
@@ -38,6 +41,10 @@ const alphabet: Map<string, DataTypeConstructor> = new Map()
   .set('C', Chat)
   .set('U', UUID)
   .set('B', Bool)
+  .set('Nbt', NBT)
+  .set('Ub', UByte)
+  // .set('P', Position)
+  .set('I', Int)
 
 const fns: Map<string, Function> = new Map()
   .set('O', Optional)
@@ -54,6 +61,7 @@ export function readStruct (struct: string): any[] {
     symbol += letter
     if (next !== '(' && next.toUpperCase() === next) {
       const DT = alphabet.get(symbol)
+      if (DT === undefined) throw new Error(`Invalid symbol '${symbol}'`)
       result.push(DT)
       symbol = ''
       continue

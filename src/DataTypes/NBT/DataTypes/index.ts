@@ -31,7 +31,7 @@ export class End extends NBTTag<null> {
   }
 
   protected write (): Buffer {
-    return Buffer.allocUnsafe(0)
+    return Buffer.alloc(1)
   }
 }
 types.set(End.id, End)

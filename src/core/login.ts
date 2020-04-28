@@ -49,22 +49,19 @@ export default async function login (user: EventEmitter) {
       client.username = profile.name
       client.profile = profile
       // TODO: Allow different thresholds
-      client.send.setCompression(0, () => {
-        client.enableCompression()
-        client.send.loginSuccess(client.uuid, client.username, () => {
-          client.state = ESocketState.PLAY
-          // TODO: Make this work
-          client.send.addPlayerInfo([{
-            uuid: client.uuid,
-            properties: [],
-            name: client.username,
-            gamemode: 0,
-            ping: 0,
-            hasDisplayName: true,
-            displayName: 'hello'
-          }])
-        })
-      })
+      await client.send.setCompression(0)
+      client.enableCompression()
+      await client.send.loginSuccess(client.uuid, client.username)
+      client.state = ESocketState.PLAY
+      client.send.addPlayerInfo([{
+        uuid: client.uuid,
+        properties: [],
+        name: client.username,
+        gamemode: 0,
+        ping: 0,
+        hasDisplayName: true,
+        displayName: 'hello'
+      }])
     } catch (error) {
       logger.error(`Could not check whether ${client.username} has joined - ${error.message}`)
       logger.verbose(error.message)

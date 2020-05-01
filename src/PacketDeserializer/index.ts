@@ -2,6 +2,7 @@ import { Duplex } from 'stream'
 import VarInt from '../DataTypes/VarInt'
 import MinecraftClient from '../MinecraftClient'
 import zlib from 'zlib'
+import logger from '../logger'
 
 export default class PacketDeserializer extends Duplex {
   // The packet currently being read
@@ -26,7 +27,7 @@ export default class PacketDeserializer extends Duplex {
   /**
    * Handles incoming incoming and serializes them
    */
-  _write (chunk: Buffer, encoding: string, callback: (error?: (Error | null)) => void): void {
+  async _write (chunk: Buffer, encoding: string, callback: (error?: (Error | null)) => void): Promise<void> {
     /* Packet Format:
     * Length   - VarInt
     * PacketId - VarInt
@@ -44,7 +45,7 @@ export default class PacketDeserializer extends Duplex {
       this.receivedBytes = Buffer.concat([this.receivedBytes, wantedChunk])
       this.remainingBytes -= wantedChunk.length
       // If the packet has been fully read, add it to the buffer
-      if (this.remainingBytes === 0) this.addPacket()
+      if (this.remainingBytes === 0) await this.addPacket()
     }
     // If the whole buffer has been processed, fire the callback
     if (chunk.length === 0) {
@@ -56,27 +57,37 @@ export default class PacketDeserializer extends Duplex {
     chunk = chunk.slice(packetLength.buffer.length)
     this.receivedBytes = packetLength.buffer
     this.remainingBytes = packetLength.value
-    this._write(chunk, encoding, callback)
+    await this._write(chunk, encoding, callback)
   }
 
   /**
    * Adds the current packet to the buffer
    */
-  private addPacket (): void {
-    // Uncompress if the packet was compressed
-    if (this.client.compression) {
-      const packetLength = new VarInt({ buffer: this.receivedBytes })
-      const dataLength = new VarInt({ buffer: this.receivedBytes.slice(packetLength.buffer.length) })
-      const compressed = this.receivedBytes.slice(packetLength.buffer.length + dataLength.buffer.length)
-      const uncompressed = zlib.inflateSync(compressed)
-      const newPacketLength = new VarInt({ value: packetLength.value - dataLength.buffer.length })
-      this.receivedBytes = Buffer.concat([newPacketLength.buffer, uncompressed])
-    }
+  private async addPacket (): Promise<void> {
+    try {
+      if (this.client.usesCompression()) {
+        // Decompress if the packet was compressed
+        const packetLength = new VarInt({ buffer: this.receivedBytes })
+        const dataLength = new VarInt({ buffer: this.receivedBytes.slice(packetLength.buffer.length) })
+        const compressed = this.receivedBytes.slice(packetLength.buffer.length + dataLength.buffer.length)
+        const decompressed: Buffer = await new Promise((resolve, reject) =>
+          zlib.inflate(compressed, (error, decompressed) =>
+            error
+              ? reject(error)
+              : resolve(decompressed)))
+        const newPacketLength = new VarInt({ value: packetLength.value - dataLength.buffer.length })
+        this.receivedBytes = Buffer.concat([newPacketLength.buffer, decompressed])
+      }
 
-    if (this.reading) this.reading = this.push(this.receivedBytes)
-    else this.buffer.push(this.receivedBytes)
-    this.receivedBytes = Buffer.allocUnsafe(0)
-    this.remainingBytes = 0
+      if (this.reading) this.reading = this.push(this.receivedBytes)
+      else this.buffer.push(this.receivedBytes)
+    } catch (error) {
+      logger.error(`Could not decompress a packet, discarding it - ${error.message}`)
+      logger.verbose(error.stack ?? 'No stack found for error')
+    } finally {
+      this.receivedBytes = Buffer.allocUnsafe(0)
+      this.remainingBytes = 0
+    }
   }
 
   /**

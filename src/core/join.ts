@@ -18,7 +18,7 @@ export default async function join (user: EventEmitter) {
 
   user.on('pluginMessage', (client: MinecraftClient, channel: string, data: any[]) => {
     // Emit the message to be handled elsewhere
-    if (user.listenerCount(channel) === 0) logger.warn(`Received an unhandled plugin message on channel ${channel}`)
-    else user.emit(channel, data)
+    if (client.pluginMessage.listenerCount(channel) === 0) logger.warn(`Received an unhandled plugin message on channel ${channel}`)
+    else client.pluginMessage.emit(channel, data)
   })
 }

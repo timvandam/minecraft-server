@@ -27,7 +27,7 @@ export default async function login (user: EventEmitter) {
         client.send.disconnect('&cAn error occurred while initializing encryption. Please try again')
         return
       }
-      client.verifyToken = verifyToken
+      client.setVerifyToken(verifyToken)
       client.username = username
       client.send.encryptionRequest('', der, verifyToken)
     })
@@ -35,7 +35,8 @@ export default async function login (user: EventEmitter) {
 
   user.on('encryptionResponse', async (client: MinecraftClient, sharedSecret, verifyToken) => {
     verifyToken = crypto.privateDecrypt({ key: privateKey, padding: RSA_PKCS1_PADDING }, verifyToken)
-    if (verifyToken.compare(client.verifyToken) !== 0) {
+    const verified = client.verifyTokenMatches(verifyToken)
+    if (!verified) {
       logger.warn('Received an invalid verify token')
       client.close()
       return

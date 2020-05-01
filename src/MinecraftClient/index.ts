@@ -12,6 +12,7 @@ import { Cipher, createCipheriv, createDecipheriv, Decipher } from 'crypto'
 import { Profile } from '../core/auth'
 import zlib from 'zlib'
 import * as helpers from './helperMethods'
+import { EventEmitter } from 'events'
 
 // List of connected clients
 export const clients: Set<MinecraftClient> = new Set()
@@ -27,19 +28,21 @@ interface PacketMethods {
  */
 export default class MinecraftClient extends Duplex {
   private readonly socket: Socket
-  public state: ESocketState = ESocketState.HANDSHAKING
-  public verifyToken: Buffer = Buffer.alloc(0)
+  private readonly deserializer: PacketDeserializer = new PacketDeserializer(this)
   private cipher: Cipher|undefined
   private decipher: Decipher|undefined
-  private readonly deserializer: PacketDeserializer = new PacketDeserializer(this)
+  private verifyToken: Buffer = Buffer.alloc(0)
+  private compression = false
   public readonly packets: PacketReader = new PacketReader(this)
+  public pluginMessage = new EventEmitter() // emits data whenever a plugin message is received
+  public state: ESocketState = ESocketState.HANDSHAKING
+  // TODO: Storage with subscriptions (extends EventEmitter). Before: research how feasible it is to use redis (for multithreading)
   public username = ''
   public profile: Profile|undefined
   public uuid = ''
-  public compression = false
   // TODO: Provide an object with some convenience methods (e.g. Player Info with action bound)
   public send: PacketMethods = new Proxy<PacketMethods>(helpers ?? {}, {
-    get: (target, property: string) => {
+    get: (target, property: string): Function => {
       if (target[property]) return async (...args: any[]) => target[property].apply(this, args)
       return (...data: any[]): Promise<void> => new Promise((resolve, reject) =>
         this.write({ name: property, data }, (error: Error|null|undefined) => error ? reject(error) : resolve())
@@ -75,16 +78,37 @@ export default class MinecraftClient extends Duplex {
   }
 
   /**
+   * Whether the verify token is correct
+   */
+  verifyTokenMatches (token: Buffer): boolean {
+    return this.verifyToken.compare(token) === 0
+  }
+
+  /**
+   * Sets the client's verify token
+   */
+  setVerifyToken (token: Buffer): void {
+    this.verifyToken = token
+  }
+
+  /**
    * Enables compression
    */
-  enableCompression () {
+  enableCompression (): void {
     this.compression = true
+  }
+
+  /**
+   * Whether compression is currently in use
+   */
+  usesCompression (): boolean {
+    return this.compression
   }
 
   /**
    * Creates ciphers and enables encryption
    */
-  enableEncryption (secret: Buffer) {
+  enableEncryption (secret: Buffer): void {
     // Create cipher & decipher
     this.cipher = createCipheriv('AES-128-CFB8', secret, secret)
     this.decipher = createDecipheriv('AES-128-CFB8', secret, secret)
@@ -99,7 +123,7 @@ export default class MinecraftClient extends Duplex {
   /**
    * Closes the socket
    */
-  close () {
+  close (): void {
     this.socket.end()
   }
 

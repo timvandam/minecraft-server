@@ -13,9 +13,11 @@ import UUID from '../DataTypes/UUID'
 import Bool from '../DataTypes/Bool'
 import Optional from '../DataTypes/Optional'
 import LArray from '../DataTypes/LArray'
-import { NBT } from '../DataTypes/NBT'
+import NBT from 'eznbt'
 import { UByte } from '../DataTypes/UByte'
 import { Int } from '../DataTypes/Int'
+import { Byte } from '../DataTypes/Byte'
+import ByteArray from '../DataTypes/ByteArray'
 
 export interface Packet {
   name: string;
@@ -31,7 +33,6 @@ export interface PacketData {
   data: any[];
 }
 
-// TODO: Arrays. Instead of Oc make it O(C) and works for all
 const alphabet: Map<string, DataTypeConstructor> = new Map()
   .set('V', VarInt)
   .set('S', LString)
@@ -41,11 +42,15 @@ const alphabet: Map<string, DataTypeConstructor> = new Map()
   .set('C', Chat)
   .set('U', UUID)
   .set('B', Bool)
-  .set('Nbt', NBT)
+  .set('Nbt', NBT.Compound)
   .set('Ub', UByte)
+  .set('By', Byte)
+  .set('Ba', ByteArray)
   // .set('P', Position)
   .set('I', Int)
 
+// TODO: Check for collisions between alphabet and fns
+// TODO: Ig() function for values to read but ignore (remove from the buffer)
 const fns: Map<string, Function> = new Map()
   .set('O', Optional)
   .set('A', LArray)

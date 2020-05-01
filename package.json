@@ -5,7 +5,7 @@
   "main": "src/index.js",
   "repository": "git@github.com:timvandam/minecraft-server.git",
   "author": "Tim van Dam <timvandamcs@gmail.com>",
-  "private": true,
+  "license": "GPL-3.0",
   "devDependencies": {
     "@types/axios": "^0.14.0",
     "@types/jest": "^25.2.1",
@@ -31,6 +31,7 @@
   "dependencies": {
     "axios": "^0.19.2",
     "dotenv": "^8.2.0",
+    "eznbt": "^1.0.7",
     "winston": "^3.2.1"
   }
 }

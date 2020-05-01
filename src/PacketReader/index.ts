@@ -28,7 +28,8 @@ export default class PacketReader extends Writable {
     const packetData: Packet = (await incomingPackets)?.[this.client.state]?.[packetId.value]
     if (packetData === undefined) {
       logger.warn(`Received unknown packet with ID ${packetId.value} (state=${this.client.state})`)
-      return callback(new Error('No known packet structure for the received packet'))
+      // No need to throw an error, this is fine! (and otherwise the server can be crashed by sending a bad packet o_o)
+      return callback()
     }
 
     const { name, struct } = packetData

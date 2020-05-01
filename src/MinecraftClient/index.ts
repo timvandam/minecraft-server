@@ -23,6 +23,7 @@ interface PacketMethods {
 
 /**
  * Represents a user currently connected to the server. Also acts as a packet serializer
+ * @todo create a storage for username, profile, uuid and other stuff
  */
 export default class MinecraftClient extends Duplex {
   private readonly socket: Socket
@@ -39,7 +40,7 @@ export default class MinecraftClient extends Duplex {
   // TODO: Provide an object with some convenience methods (e.g. Player Info with action bound)
   public send: PacketMethods = new Proxy<PacketMethods>(helpers ?? {}, {
     get: (target, property: string) => {
-      if (target[property]) return target[property].bind(this)
+      if (target[property]) return async (...args: any[]) => target[property].apply(this, args)
       return (...data: any[]): Promise<void> => new Promise((resolve, reject) =>
         this.write({ name: property, data }, (error: Error|null|undefined) => error ? reject(error) : resolve())
       )

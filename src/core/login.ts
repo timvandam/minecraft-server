@@ -53,6 +53,10 @@ export default async function login (user: EventEmitter) {
       client.enableCompression()
       await client.send.loginSuccess(client.uuid, client.username)
       client.state = ESocketState.PLAY
+      client.send.joinGame(0, 0, 0, 1230981723n, 100, 'default', 32, false, true)
+      client.send.pluginMessage('minecraft:brand', Buffer.from('tim', 'utf8')) // the brand of this server is tim, nice
+      // TODO: send a minecraft:brand plugin message stating this is a "tim" server
+      // TODO: Send this to all players
       client.send.addPlayerInfo([{
         uuid: client.uuid,
         properties: [],

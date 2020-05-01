@@ -55,6 +55,10 @@ const fns: Map<string, Function> = new Map()
   .set('O', Optional)
   .set('A', LArray)
 
+const structTypes: Set<string> = new Set([...alphabet.keys(), ...fns.keys()])
+
+if (structTypes.size < (alphabet.size + fns.size)) throw new Error('Duplicate functions and datatypes')
+
 export function readStruct (struct: string): any[] {
   const result: any[] = []
   const letters = struct.split('')

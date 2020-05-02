@@ -9,6 +9,7 @@ import LString from '../DataTypes/LString'
 import Bool from '../DataTypes/Bool'
 import { DataTypeConstructor } from '../DataTypes/DataType'
 import { EPlayerInfoAction } from '../enums/EPlayerInfoAction'
+import LByteArray from '../DataTypes/LByteArray'
 
 interface Player {
   UUID: string;
@@ -62,7 +63,22 @@ export function chunkData (
   x: number,
   y: number,
   bitMask: number,
+  heightMaps: object,
   biomes: number[] = [],
   data: unknown,
   blockEntities: unknown): Promise<void> {
+  const chunkX = Math.floor(x / 16)
+  const chunkY = Math.floor(y / 16)
+  const fullChunk = biomes.length !== 0
+}
+
+/**
+ * Adds a boss bar
+ */
+export function addBossBar (this: MinecraftClient, uuid: string, title: string) {
+  return this.write({
+    name: 'addBossBar',
+    // TODO: Make this configurable
+    data: [uuid, 0, title, 1, 1, 4, 0]
+  })
 }

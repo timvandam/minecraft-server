@@ -22,7 +22,7 @@ export const clients: Set<MinecraftClient> = new Set()
 
 // Interface representing what you can fetch from the client.send proxy
 interface PacketMethods {
-  [methodName: string]: (...data: any[]) => Promise<any>;
+  [methodName: string]: (this: MinecraftClient, ...data: any[]) => Promise<any>;
 }
 
 /**

@@ -11,7 +11,7 @@ export default function world (user: EventEmitter, client: MinecraftClient) {
     await client.send.updateViewPosition(0, 0)
     // Player position
     await client.send.playerPositionAndLook(0, 0, 0, 0, 0, 0, 0)
-    client.send.addBossBar(Buffer.allocUnsafe(16).toString('hex'))
+    client.send.addBossBar(Buffer.allocUnsafe(16).toString('hex'), 'welcome x)')
     // Send chunk
   })
 }

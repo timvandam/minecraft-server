@@ -70,6 +70,12 @@ export function chunkData (
   const chunkX = Math.floor(x / 16)
   const chunkY = Math.floor(y / 16)
   const fullChunk = biomes.length !== 0
+  const buf = Buffer.allocUnsafe(0)
+
+  return this.write({
+    name: 'chunkData',
+    data: [buf]
+  })
 }
 
 /**

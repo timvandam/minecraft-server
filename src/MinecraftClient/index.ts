@@ -21,8 +21,9 @@ type Plugin = (packets: EventEmitter, client: MinecraftClient) => void
 export const clients: Set<MinecraftClient> = new Set()
 
 // Interface representing what you can fetch from the client.send proxy
+type PacketMethod = (...data: any[]) => Promise<void>
 interface PacketMethods {
-  [methodName: string]: (this: MinecraftClient, ...data: any[]) => Promise<any>;
+  [methodName: string]: PacketMethod;
 }
 
 /**
@@ -41,7 +42,7 @@ export default class MinecraftClient extends Duplex {
   public state: ESocketState = ESocketState.HANDSHAKING
   // TODO: Provide an object with some convenience methods (e.g. Player Info with action bound)
   public send: PacketMethods = new Proxy<PacketMethods>(helpers ?? {}, {
-    get: (target: PacketMethods, property: string): Function => {
+    get: (target: PacketMethods, property: string): PacketMethod => {
       if (target[property]) return target[property].bind(this)
       return (...data: unknown[]) => this.write({ name: property, data })
     }

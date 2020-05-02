@@ -20,7 +20,6 @@ export default function (...DTs: DataTypeConstructor[]) {
         for (let j = 0; j < DTs.length; j++) {
           const DT = DTs[j]
           const value = new DT({ buffer: data })
-          console.log(value)
           element.push(value.value)
           data = data.slice(value.buffer.length)
         }

@@ -18,6 +18,8 @@ import { UByte } from '../DataTypes/UByte'
 import { Int } from '../DataTypes/Int'
 import { Byte } from '../DataTypes/Byte'
 import ByteArray from '../DataTypes/ByteArray'
+import Double from '../DataTypes/Double'
+import Float from '../DataTypes/Float'
 
 export interface Packet {
   name: string;
@@ -48,6 +50,8 @@ const alphabet: Map<string, DataTypeConstructor> = new Map()
   .set('Ba', ByteArray)
   // .set('P', Position)
   .set('I', Int)
+  .set('D', Double)
+  .set('F', Float)
 
 // TODO: Ig() function for values to read but ignore (remove from the buffer)
 const fns: Map<string, Function> = new Map()

@@ -32,7 +32,7 @@ interface PlayerToAddProperty {
 }
 
 // Check whether this actually works
-export function addPlayerInfo (this: MinecraftClient, players: PlayerToAdd[]) {
+export function addPlayerInfo (this: MinecraftClient, players: PlayerToAdd[]): Promise<void> {
   const playerArr: any[] = []
   players.forEach(player => playerArr.push([
     player.uuid,
@@ -51,4 +51,18 @@ export function addPlayerInfo (this: MinecraftClient, players: PlayerToAdd[]) {
     name: 'playerInfoAddPlayers',
     data: [EPlayerInfoAction.ADD_PLAYER, playerArr]
   }, (error) => error ? reject(error) : resolve()))
+}
+
+/**
+ * This overwrites the default behavior of the chunkData packet. This is needed as its schema
+ * depends on its arguments
+ */
+export function chunkData (
+  this: MinecraftClient,
+  x: number,
+  y: number,
+  bitMask: number,
+  biomes: number[] = [],
+  data: unknown,
+  blockEntities: unknown): Promise<void> {
 }

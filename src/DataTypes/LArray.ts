@@ -5,7 +5,8 @@ import VarInt from './VarInt'
  * Create a Length-Array with certain datatypes
  */
 export default function (...DTs: DataTypeConstructor[]) {
-  return class LArray extends DataType<any[]> {
+  // Each element is an array!
+  return class LArray extends DataType<any[][]> {
     protected read (data: Buffer): any[] {
       // Read length
       const length = new VarInt({ buffer: data })
@@ -19,6 +20,7 @@ export default function (...DTs: DataTypeConstructor[]) {
         for (let j = 0; j < DTs.length; j++) {
           const DT = DTs[j]
           const value = new DT({ buffer: data })
+          console.log(value)
           element.push(value.value)
           data = data.slice(value.buffer.length)
         }

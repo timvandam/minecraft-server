@@ -28,7 +28,7 @@ export default async function login (user: EventEmitter) {
         return
       }
       client.setVerifyToken(verifyToken)
-      client.username = username
+      client.storage.set('username', username)
       client.send.encryptionRequest('', der, verifyToken)
     })
   })
@@ -45,30 +45,33 @@ export default async function login (user: EventEmitter) {
     client.enableEncryption(secret)
     try {
       const hexdigest = generateHexDigest(secret, der)
-      const profile = await fetchJoinedUser(client.username, hexdigest)
-      client.uuid = profile.id.replace(/(\w{8})(\w{4})(\w{4})(\w{4})(\w{12})/, '$1-$2-$3-$4-$5')
-      client.username = profile.name
-      client.profile = profile
+      const profile = await fetchJoinedUser(client.storage.get('username'), hexdigest)
+      const uuid = profile.id.replace(/(\w{8})(\w{4})(\w{4})(\w{4})(\w{12})/, '$1-$2-$3-$4-$5')
+      await client.storage.set(
+        'uuid', uuid,
+        'username', profile.name,
+        'profile', profile
+      )
       // TODO: Allow different thresholds
       await client.send.setCompression(0)
       client.enableCompression()
-      await client.send.loginSuccess(client.uuid, client.username)
+      await client.send.loginSuccess(uuid, profile.name)
       client.state = ESocketState.PLAY
       client.send.joinGame(0, 0, 0, 1230981723n, 100, 'default', 32, false, true)
       client.send.pluginMessage('minecraft:brand', Buffer.from('tim', 'utf8')) // the brand of this server is tim, nice
       // TODO: send a minecraft:brand plugin message stating this is a "tim" server
       // TODO: Send this to all players
       client.send.addPlayerInfo([{
-        uuid: client.uuid,
+        uuid,
         properties: [],
-        name: client.username,
+        name: profile.name,
         gamemode: 0,
         ping: 0,
         hasDisplayName: true,
         displayName: 'hello'
       }])
     } catch (error) {
-      logger.error(`Could not check whether ${client.username} has joined - ${error.message}`)
+      logger.error(`Could not check whether ${await client.storage.get('username')} has joined - ${error.message}`)
       logger.verbose(error.message)
       client.close()
     }

@@ -13,38 +13,35 @@ import { Profile } from '../core/auth'
 import zlib from 'zlib'
 import * as helpers from './helperMethods'
 import { EventEmitter } from 'events'
+import Storage from './Storage'
 
 // List of connected clients
 export const clients: Set<MinecraftClient> = new Set()
 
 // Interface representing what you can fetch from the client.send proxy
 interface PacketMethods {
-  [methodName: string]: (...data: any[]) => void;
+  [methodName: string]: (...data: any[]) => Promise<any>;
 }
 
 /**
  * Represents a user currently connected to the server. Also acts as a packet serializer
- * @todo create a storage for username, profile, uuid and other stuff
  */
 export default class MinecraftClient extends Duplex {
   private readonly socket: Socket
-  private readonly deserializer: PacketDeserializer = new PacketDeserializer(this)
+  private readonly deserializer = new PacketDeserializer(this)
   private cipher: Cipher|undefined
   private decipher: Decipher|undefined
-  private verifyToken: Buffer = Buffer.alloc(0)
+  private verifyToken = Buffer.alloc(0)
   private compression = false
-  public readonly packets: PacketReader = new PacketReader(this)
+  public readonly packets = new PacketReader(this)
   public pluginMessage = new EventEmitter() // emits data whenever a plugin message is received
+  public storage = new Storage()
   public state: ESocketState = ESocketState.HANDSHAKING
-  // TODO: Storage with subscriptions (extends EventEmitter). Before: research how feasible it is to use redis (for multithreading)
-  public username = ''
-  public profile: Profile|undefined
-  public uuid = ''
   // TODO: Provide an object with some convenience methods (e.g. Player Info with action bound)
   public send: PacketMethods = new Proxy<PacketMethods>(helpers ?? {}, {
-    get: (target, property: string): Function => {
-      if (target[property]) return async (...args: any[]) => target[property].apply(this, args)
-      return (...data: any[]): Promise<void> => new Promise((resolve, reject) =>
+    get: (target: PacketMethods, property: string): Function => {
+      if (target[property]) return async (...args: any[]): Promise<unknown> => target[property].apply(this, args)
+      return (...data: unknown[]): Promise<void> => new Promise((resolve, reject) =>
         this.write({ name: property, data }, (error: Error|null|undefined) => error ? reject(error) : resolve())
       )
     }

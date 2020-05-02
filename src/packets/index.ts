@@ -49,7 +49,6 @@ const alphabet: Map<string, DataTypeConstructor> = new Map()
   // .set('P', Position)
   .set('I', Int)
 
-// TODO: Check for collisions between alphabet and fns
 // TODO: Ig() function for values to read but ignore (remove from the buffer)
 const fns: Map<string, Function> = new Map()
   .set('O', Optional)

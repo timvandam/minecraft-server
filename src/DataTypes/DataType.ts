@@ -23,7 +23,7 @@ export abstract class DataType<T> {
     // Re-write the buffer from the read value
     // This is done in case the provided buffer was too large but still read correctly
     this.buffer = this.write(this.value)
-    if (value !== undefined) this.value = this.read(this.buffer) // reflect any loss of precision
+    // if (value !== undefined) this.value = this.read(this.buffer) // reflect any loss of precision
   }
 
   protected abstract read (data: Buffer): T

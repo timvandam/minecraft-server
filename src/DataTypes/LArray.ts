@@ -15,10 +15,14 @@ export default function (...DTs: DataTypeConstructor[]) {
 
       // Fetch all values
       for (let i = 0; i < length.value; i++) {
-        const DT = DTs[i]
-        const value = new DT({ buffer: data })
-        result.push(value.value)
-        data = data.slice(value.buffer.length)
+        const element = []
+        for (let j = 0; j < DTs.length; j++) {
+          const DT = DTs[j]
+          const value = new DT({ buffer: data })
+          element.push(value.value)
+          data = data.slice(value.buffer.length)
+        }
+        result.push(element)
       }
 
       return result
@@ -32,11 +36,12 @@ export default function (...DTs: DataTypeConstructor[]) {
       array.unshift(length.buffer)
 
       // For each element of the array, read them using the provided datatypes
-      while (values.length) {
-        const value = values.shift()
+      for (let i = 0; i < values.length; i++) {
+        const value = values[i]
         // Add buffers for each dt found
-        for (const DT of DTs) {
-          array.push(new DT({ value: value.shift() }).buffer)
+        for (let j = 0; j < DTs.length; j++) {
+          const DT = DTs[j]
+          array.push(new DT({ value: value[j] }).buffer)
         }
       }
 

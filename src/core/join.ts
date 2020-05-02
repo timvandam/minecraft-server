@@ -13,7 +13,14 @@ export default async function join (user: EventEmitter) {
     chatColors: boolean,
     skinParts: number,
     mainHand: number) => {
-    // TODO: Handle this/store it in the client. Client.setState?
+    client.storage.set(
+      'locale', locale,
+      'renderDistance', renderDistance,
+      'chatMode', chatMode,
+      'chatColors', chatColors,
+      'skinParts', skinParts,
+      'mainHand', mainHand
+    )
   })
 
   user.on('pluginMessage', (client: MinecraftClient, channel: string, data: any[]) => {

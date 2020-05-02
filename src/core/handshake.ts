@@ -5,9 +5,8 @@ import { status } from '../config'
 /**
  * Handles handshake and status packets
  */
-export default function handshake (user: EventEmitter) {
+export default function handshake (user: EventEmitter, client: MinecraftClient) {
   user.on('handshake', (
-    client: MinecraftClient,
     protocolVersion: number,
     address: string,
     port: number,
@@ -15,12 +14,12 @@ export default function handshake (user: EventEmitter) {
     client.state = nextState
   })
 
-  user.on('status', (client: MinecraftClient): void => {
+  user.on('status', (): void => {
     const json = JSON.stringify(status())
     client.send.status(json)
   })
 
-  user.on('ping', (client: MinecraftClient, num: bigint): void => {
+  user.on('ping', (num: bigint): void => {
     client.send.pong(num)
   })
 }

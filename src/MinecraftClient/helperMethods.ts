@@ -47,10 +47,10 @@ export function addPlayerInfo (this: MinecraftClient, players: PlayerToAdd[]): P
     player.hasDisplayName,
     player.displayName
   ]))
-  return new Promise((resolve, reject) => this.write({
+  return this.write({
     name: 'playerInfoAddPlayers',
     data: [EPlayerInfoAction.ADD_PLAYER, playerArr]
-  }, (error) => error ? reject(error) : resolve()))
+  })
 }
 
 /**

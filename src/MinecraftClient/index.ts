@@ -9,11 +9,13 @@ import logger from '../logger'
 import VarInt from '../DataTypes/VarInt'
 import { DataType } from '../DataTypes/DataType'
 import { Cipher, createCipheriv, createDecipheriv, Decipher } from 'crypto'
-import { Profile } from '../core/auth'
 import zlib from 'zlib'
 import * as helpers from './helperMethods'
 import { EventEmitter } from 'events'
 import Storage from './Storage'
+
+// TODO: Plugin injection
+type Plugin = (packets: EventEmitter, client: MinecraftClient) => void
 
 // List of connected clients
 export const clients: Set<MinecraftClient> = new Set()
@@ -40,10 +42,8 @@ export default class MinecraftClient extends Duplex {
   // TODO: Provide an object with some convenience methods (e.g. Player Info with action bound)
   public send: PacketMethods = new Proxy<PacketMethods>(helpers ?? {}, {
     get: (target: PacketMethods, property: string): Function => {
-      if (target[property]) return async (...args: any[]): Promise<unknown> => target[property].apply(this, args)
-      return (...data: unknown[]): Promise<void> => new Promise((resolve, reject) =>
-        this.write({ name: property, data }, (error: Error|null|undefined) => error ? reject(error) : resolve())
-      )
+      if (target[property]) return target[property].bind(this)
+      return (...data: unknown[]) => this.write({ name: property, data })
     }
   })
 
@@ -64,13 +64,27 @@ export default class MinecraftClient extends Duplex {
       .pipe(this.packets)
 
     // Have the core plugin handle incoming packets
-    core(this.packets)
+    core(this.packets, this)
 
     // Keep track of connected clients
     clients.add(this)
     socket.once('close', () => {
       clients.delete(this)
       this.end() // this should finish the writable
+    })
+  }
+
+  /**
+   * Async version of writable.write (still supports callbacks tho)
+   */
+  // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+  // @ts-ignore
+  write (chunk: any, cb?: (error: (Error | null | undefined)) => void): Promise<void> {
+    return new Promise((resolve, reject) => {
+      super.write(chunk, (error) => {
+        if (cb) cb(error)
+        error ? reject(error) : resolve()
+      })
     })
   }
 
@@ -127,7 +141,6 @@ export default class MinecraftClient extends Duplex {
   /**
    * Transforms a Packet into a buffer
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private async serializePacket (name: string|undefined, ...data: any[]): Promise<Buffer> {
     /* Packet Structure:
      * Length   - VarInt

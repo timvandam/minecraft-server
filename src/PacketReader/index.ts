@@ -48,8 +48,8 @@ export default class PacketReader extends Writable {
       packet = packet.slice(value.buffer.length)
     }
 
-    // Emit this packet + client + data
-    this.emit(name, this.client, ...data)
+    // Emit this packet + data
+    this.emit(name, ...data)
     callback()
   }
 }

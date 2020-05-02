@@ -4,6 +4,7 @@ import MinecraftClient from '../MinecraftClient'
 import logger from '../logger'
 import { fetchJoinedUser, generateHexDigest } from './auth'
 import { ESocketState } from '../enums/ESocketState'
+import LString from '../DataTypes/LString'
 
 const { RSA_PKCS1_PADDING } = crypto.constants
 
@@ -17,8 +18,8 @@ const der = Buffer.from((pk as string).trim().split('\n').slice(1, -1).join(''),
 /**
  * Handles login packets
  */
-export default async function login (user: EventEmitter) {
-  user.on('loginStart', (client: MinecraftClient, username: string) => {
+export default async function login (user: EventEmitter, client: MinecraftClient) {
+  user.on('loginStart', (username: string) => {
     // Request encryption
     crypto.randomBytes(4, (error, verifyToken) => {
       if (error) {
@@ -33,7 +34,7 @@ export default async function login (user: EventEmitter) {
     })
   })
 
-  user.on('encryptionResponse', async (client: MinecraftClient, sharedSecret, verifyToken) => {
+  user.on('encryptionResponse', async (sharedSecret, verifyToken) => {
     verifyToken = crypto.privateDecrypt({ key: privateKey, padding: RSA_PKCS1_PADDING }, verifyToken)
     const verified = client.verifyTokenMatches(verifyToken)
     if (!verified) {
@@ -57,9 +58,10 @@ export default async function login (user: EventEmitter) {
       client.enableCompression()
       await client.send.loginSuccess(uuid, profile.name)
       client.state = ESocketState.PLAY
-      client.send.joinGame(0, 0, 0, 1230981723n, 100, 'default', 32, false, true)
-      client.send.pluginMessage('minecraft:brand', Buffer.from('tim', 'utf8')) // the brand of this server is tim, nice
-      user.emit('sendChunk', client)
+      client.send.pluginMessage('minecraft:brand', new LString({ value: 'tim' }).buffer) // the brand of this server is tim, nice
+      await client.send.joinGame(0, 0, 0, 1230981723n, 100, 'default', 32, false, true)
+      client.storage.set('position', { x: 0, y: 0, z: 100 })
+      // TODO: Set location in storage. Respond to that by sending chunks
       // TODO: Send this to all players
       client.send.addPlayerInfo([{
         uuid,

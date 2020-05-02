@@ -5,8 +5,8 @@ import logger from '../logger'
 /**
  * Handles packets sent while joining
  */
-export default async function join (user: EventEmitter) {
-  user.on('clientSettings', (client: MinecraftClient,
+export default async function join (user: EventEmitter, client: MinecraftClient) {
+  user.on('clientSettings', (
     locale: string,
     renderDistance: number,
     chatMode: number,
@@ -23,7 +23,7 @@ export default async function join (user: EventEmitter) {
     )
   })
 
-  user.on('pluginMessage', (client: MinecraftClient, channel: string, data: any[]) => {
+  user.on('pluginMessage', (channel: string, data: any[]) => {
     // Emit the message to be handled elsewhere
     if (client.pluginMessage.listenerCount(channel) === 0) logger.warn(`Received an unhandled plugin message on channel ${channel}`)
     else client.pluginMessage.emit(channel, data)

@@ -1,15 +1,13 @@
 // This file consists of helper methods which can be used if sending regular packets is not convenient
 // For example packets whose format changes depending on some variable
 
+// TODO: Create many files instead of just this one
+
 /**
  * Add a player to the TAB player menu
  */
 import MinecraftClient from './index'
-import LString from '../DataTypes/LString'
-import Bool from '../DataTypes/Bool'
-import { DataTypeConstructor } from '../DataTypes/DataType'
 import { EPlayerInfoAction } from '../enums/EPlayerInfoAction'
-import LByteArray from '../DataTypes/LByteArray'
 import { EBossBarColor } from '../enums/EBossBarColor'
 import { EBossBarDivision } from '../enums/EBossBarDivision'
 import { EBossBarFlag } from '../enums/EBossBarFlag'
@@ -61,23 +59,15 @@ export function addPlayerInfo (this: MinecraftClient, players: PlayerToAdd[]): P
  * This overwrites the default behavior of the chunkData packet. This is needed as its schema
  * depends on its arguments
  */
-export function chunkData (
-  this: MinecraftClient,
-  x: number,
-  y: number,
-  bitMask: number,
-  heightMaps: object,
-  biomes: number[] = [],
-  data: unknown,
-  blockEntities: unknown): Promise<void> {
+export function chunkData (this: MinecraftClient, x: number, y: number): Promise<void> {
   const chunkX = Math.floor(x / 16)
   const chunkY = Math.floor(y / 16)
-  const fullChunk = biomes.length !== 0
-  const buf = Buffer.allocUnsafe(0)
+
+  // TODO: Load world
 
   return this.write({
     name: 'chunkData',
-    data: [buf]
+    data: [chunkX, chunkY]
   })
 }
 

@@ -82,6 +82,7 @@ export default class MinecraftClient extends Duplex {
   // @ts-ignore
   write (chunk: any, cb?: (error: (Error | null | undefined)) => void): Promise<void> {
     return new Promise((resolve, reject) => {
+      if (this.socket.destroyed) return resolve()
       super.write(chunk, (error) => {
         if (cb) cb(error)
         error ? reject(error) : resolve()

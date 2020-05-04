@@ -58,10 +58,9 @@ export default async function login (user: EventEmitter, client: MinecraftClient
       client.enableCompression()
       await client.send.loginSuccess(uuid, profile.name)
       client.state = ESocketState.PLAY
+      client.send.joinGame(0, 0, 0, 1230981723n, 100, 'default', 32, false, true)
       client.send.pluginMessage('minecraft:brand', new LString({ value: 'tim' }).buffer) // the brand of this server is tim, nice
-      await client.send.joinGame(0, 0, 0, 1230981723n, 100, 'default', 32, false, true)
       client.storage.set('position', { x: 0, y: 0, z: 100 })
-      // TODO: Set location in storage. Respond to that by sending chunks
       // TODO: Send this to all players
       client.send.addPlayerInfo([{
         uuid,
@@ -70,7 +69,7 @@ export default async function login (user: EventEmitter, client: MinecraftClient
         gamemode: 0,
         ping: 0,
         hasDisplayName: true,
-        displayName: 'hello'
+        displayName: profile.name
       }])
     } catch (error) {
       logger.error(`Could not check whether ${await client.storage.get('username')} has joined - ${error.message}`)

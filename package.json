@@ -20,12 +20,14 @@
     "eslint-plugin-promise": "^4.2.1",
     "eslint-plugin-standard": "^4.0.1",
     "jest": "^25.4.0",
+    "nodemon": "^2.0.3",
     "ts-jest": "^25.4.0",
     "typescript": "^3.8.3"
   },
   "scripts": {
     "test": "jest",
     "start": "node -r dotenv/config src/index",
+    "dev": "nodemon --exec \"node -r dotenv/config\" src/index",
     "lint": "yarn eslint . --ext ts"
   },
   "dependencies": {

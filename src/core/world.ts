@@ -16,11 +16,11 @@ export default function world (user: EventEmitter, client: MinecraftClient) {
     const uuid = Buffer.allocUnsafe(16).toString('hex')
     let health = 0
     let d = 1
-    client.send.addBossBar(uuid, '&bwelcome!', health, EBossBarColor.BLUE, EBossBarDivision.TWENTY, true, true, true)
+    client.send.addBossBar(uuid, '&bwelcome!', health, EBossBarColor.BLUE, EBossBarDivision.TWELVE, true, true, true)
     setInterval(() => {
       health += d
-      if (health === 20 || health === 0) d = -d
-      client.send.updateBossBarHealth(uuid, health / 20)
+      if (health === 12 || health === 0) d = -d
+      client.send.updateBossBarHealth(uuid, health / 12)
     }, 100)
     // Send chunk
   })

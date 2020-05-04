@@ -11,6 +11,12 @@ import { EPlayerInfoAction } from '../enums/EPlayerInfoAction'
 import { EBossBarColor } from '../enums/EBossBarColor'
 import { EBossBarDivision } from '../enums/EBossBarDivision'
 import { EBossBarFlag } from '../enums/EBossBarFlag'
+import { NBTTag, NBTTagConstructor } from 'eznbt/lib/DataTypes/NBTTag'
+import { LongArray, longarray } from 'eznbt/lib/DataTypes/LongArray'
+import Short from '../DataTypes/Short'
+import { UByte } from '../DataTypes/UByte'
+import LArray from '../DataTypes/LArray'
+import Long from '../DataTypes/Long'
 
 interface Player {
   UUID: string;
@@ -64,10 +70,36 @@ export function chunkData (this: MinecraftClient, x: number, y: number): Promise
   const chunkY = Math.floor(y / 16)
 
   // TODO: Load world
+  /*
+  What we need:
+  - Heightmap (NBT Compound with MOTION_BLOCKING)
+    - MOTION_BLOCKING: 256 9-bit entries as a LongArray. Has y of the highest solid block.
+      - LongArray = Length<Int> + ...Longs
+  - Biomes? (1024 biome IDs ordered by x, z, y. Each one is a 4x4x4 area)
+  - Chunk data (array of Chunk Sections)
+  - Block entities
+   */
+
+  const heightmap = {
+    MOTION_BLOCKING: longarray(...Array(36).fill(0n))
+  }
+
+  const biomes = Buffer.alloc(0)
+
+  const LongArray = LArray(Long)
+  interface ChunkSection {
+    0: Short; // block count
+    1: UByte; // bits per block
+    2: any; // pallette
+    3: LongArray; // length + data array
+  }
+
+  const chunkData: ChunkSection = [] // length is equal to the amount of 1 bits in the mask (0b1)
+  const blockEntities: NBTTag<any>[] = []
 
   return this.write({
     name: 'chunkData',
-    data: [chunkX, chunkY]
+    data: [chunkX, chunkY, false, 0b1, heightmap, biomes, chunkData, blockEntities]
   })
 }
 

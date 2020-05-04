@@ -23,5 +23,6 @@ export default function world (user: EventEmitter, client: MinecraftClient) {
       client.send.updateBossBarHealth(uuid, health / 12)
     }, 100)
     // Send chunk
+    client.send.chunkData(0, 0)
   })
 }

@@ -10,6 +10,9 @@ import Bool from '../DataTypes/Bool'
 import { DataTypeConstructor } from '../DataTypes/DataType'
 import { EPlayerInfoAction } from '../enums/EPlayerInfoAction'
 import LByteArray from '../DataTypes/LByteArray'
+import { EBossBarColor } from '../enums/EBossBarColor'
+import { EBossBarDivision } from '../enums/EBossBarDivision'
+import { EBossBarFlag } from '../enums/EBossBarFlag'
 
 interface Player {
   UUID: string;
@@ -81,10 +84,32 @@ export function chunkData (
 /**
  * Adds a boss bar
  */
-export function addBossBar (this: MinecraftClient, uuid: string, title: string) {
+export function addBossBar (
+  this: MinecraftClient,
+  uuid: string,
+  title: string,
+  health: number,
+  color: EBossBarColor,
+  division: EBossBarDivision,
+  darkSky = false,
+  dragonBar = false,
+  fog = false) {
+  let flag = 0
+  if (darkSky) flag |= EBossBarFlag.DARKEN_SKY
+  if (dragonBar) flag |= EBossBarFlag.DRAGON_BAR
+  if (fog) flag |= EBossBarFlag.CREATE_FOG
   return this.write({
     name: 'addBossBar',
-    // TODO: Make this configurable
-    data: [uuid, 0, title, 1, 1, 4, 0]
+    data: [uuid, 0, title, health, color, division, flag]
+  })
+}
+
+/**
+ * Updates the health of a boss bar
+ */
+export function updateBossBarHealth (this: MinecraftClient, uuid: string, health: number) {
+  return this.write({
+    name: 'updateBossBarHealth',
+    data: [uuid, 2, health]
   })
 }

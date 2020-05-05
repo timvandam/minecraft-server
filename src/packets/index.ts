@@ -20,6 +20,8 @@ import { Byte } from '../DataTypes/Byte'
 import ByteArray from '../DataTypes/ByteArray'
 import Double from '../DataTypes/Double'
 import Float from '../DataTypes/Float'
+import Short from '../DataTypes/Short'
+import NonLArray from '../DataTypes/Array'
 
 export interface Packet {
   name: string;
@@ -39,12 +41,14 @@ const alphabet: Map<string, DataTypeConstructor> = new Map()
   .set('V', VarInt)
   .set('S', LString)
   .set('Us', UShort)
+  .set('Sh', Short)
   .set('L', Long)
   .set('Lb', LByteArray)
   .set('C', Chat)
   .set('U', UUID)
   .set('B', Bool)
-  .set('Nbt', NBT.Compound)
+  .set('Nbt', NBT.RootCompound)
+  .set('Nbtc', NBT.Compound)
   .set('Ub', UByte)
   .set('By', Byte)
   .set('Ba', ByteArray)
@@ -57,6 +61,7 @@ const alphabet: Map<string, DataTypeConstructor> = new Map()
 const fns: Map<string, Function> = new Map()
   .set('O', Optional)
   .set('A', LArray)
+  .set('An', NonLArray)
 
 const structTypes: Set<string> = new Set([...alphabet.keys(), ...fns.keys()])
 

@@ -11,12 +11,8 @@ import { EPlayerInfoAction } from '../enums/EPlayerInfoAction'
 import { EBossBarColor } from '../enums/EBossBarColor'
 import { EBossBarDivision } from '../enums/EBossBarDivision'
 import { EBossBarFlag } from '../enums/EBossBarFlag'
-import { NBTTag, NBTTagConstructor } from 'eznbt/lib/DataTypes/NBTTag'
-import { LongArray, longarray } from 'eznbt/lib/DataTypes/LongArray'
-import Short from '../DataTypes/Short'
-import { UByte } from '../DataTypes/UByte'
-import LArray from '../DataTypes/LArray'
-import Long from '../DataTypes/Long'
+import { longarray } from 'eznbt/lib/DataTypes/LongArray'
+import { Compound } from 'eznbt/lib/DataTypes/Compound'
 
 interface Player {
   UUID: string;
@@ -80,26 +76,39 @@ export function chunkData (this: MinecraftClient, x: number, y: number): Promise
   - Block entities
    */
 
+  /** What is a (section) palette?
+   * Maps bit sequences to longer ones. Essentially a dictionary where you use indices
+   * to point to stuff. Kinda like what .zip does. The indices are at least 4 bits, max 8.
+   */
+
+  // No heightmap for now
   const heightmap = {
-    MOTION_BLOCKING: longarray(...Array(36).fill(0n))
+    MOTION_BLOCKING: longarray(...Array(36).fill(0n)),
+    [Symbol.for('NBTRootTagName')]: 'Heightmaps'
   }
 
+  // No full chunk/biomes for now
   const biomes = Buffer.alloc(0)
 
-  const LongArray = LArray(Long)
+  // Array of chunk sections
   interface ChunkSection {
-    0: Short; // block count
-    1: UByte; // bits per block
-    2: any; // pallette
-    3: LongArray; // length + data array
+    blockCount: number; // short
+    bitsPerBlock: number; // ubyte. between 4 and 8
+    palette: number[][]; // varint array prefixed with varint length
+    data: bigint[][]; // long array prefixed by varint length
   }
-
-  const chunkData: ChunkSection = [] // length is equal to the amount of 1 bits in the mask (0b1)
-  const blockEntities: NBTTag<any>[] = []
+  const chunkData: ChunkSection[] = [{
+    blockCount: 1,
+    bitsPerBlock: 4,
+    palette: [[0x2]], // only grass
+    data: Array(1).fill([0n])
+  }]
+  const chunkArrays = chunkData.map(({ blockCount, bitsPerBlock, palette, data }) => ([blockCount, bitsPerBlock, palette, data]))
+  const blockEntities: any[] = [] // compound tags
 
   return this.write({
     name: 'chunkData',
-    data: [chunkX, chunkY, false, 0b1, heightmap, biomes, chunkData, blockEntities]
+    data: [chunkX, chunkY, false, 0b1, heightmap, biomes, chunkArrays, blockEntities]
   })
 }
 

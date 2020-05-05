@@ -13,6 +13,7 @@ import zlib from 'zlib'
 import * as helpers from './helperMethods'
 import { EventEmitter } from 'events'
 import Storage from './Storage'
+import LArray from '../DataTypes/LArray'
 
 // TODO: Plugin injection
 type Plugin = (packets: EventEmitter, client: MinecraftClient) => void
@@ -160,6 +161,8 @@ export default class MinecraftClient extends Duplex {
     for (const DT of struct) {
       if (data.length === 0) throw new Error(`Invalid data (missing a ${DT.name})`)
       dataArray.push(new DT({ value: data.shift() }))
+      const val = dataArray[dataArray.length - 1]
+      if (Array.isArray(val.value)) console.log(val.value[0], val.buffer.length)
     }
 
     const dataBuffer = Buffer.concat(dataArray.map(d => d.buffer))

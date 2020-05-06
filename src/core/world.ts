@@ -13,7 +13,7 @@ export default function world (user: EventEmitter, client: MinecraftClient) {
     // Send chunk 0, 0 position as sample
     await client.send.updateViewPosition(0, 0)
     // Player position
-    await client.send.playerPositionAndLook(0, 0, 1, 0, 0, 0, 0)
+    await client.send.playerPositionAndLook(0, 0, 10, 0, 0, 0, 0)
     const uuid = Buffer.allocUnsafe(16).toString('hex')
     let health = 0
     let d = 1

@@ -22,6 +22,7 @@ import Double from '../DataTypes/Double'
 import Float from '../DataTypes/Float'
 import Short from '../DataTypes/Short'
 import NonLArray from '../DataTypes/Array'
+import LbArray from '../DataTypes/LbArray'
 
 export interface Packet {
   name: string;
@@ -62,6 +63,7 @@ const fns: Map<string, Function> = new Map()
   .set('O', Optional)
   .set('A', LArray)
   .set('An', NonLArray)
+  .set('Ab', LbArray) // LArray but size is in bytes
 
 const structTypes: Set<string> = new Set([...alphabet.keys(), ...fns.keys()])
 

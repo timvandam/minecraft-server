@@ -88,7 +88,7 @@ export function chunkData (this: MinecraftClient, x: number, y: number): Promise
   }
 
   // No full chunk/biomes for now
-  const biomes = Buffer.alloc(0)
+  const biomes = Buffer.alloc(4 * 1024, 0)
 
   // Array of chunk sections
   interface ChunkSection {
@@ -97,18 +97,18 @@ export function chunkData (this: MinecraftClient, x: number, y: number): Promise
     palette: number[][]; // varint array prefixed with varint length
     data: bigint[][]; // long array prefixed by varint length
   }
-  const chunkData: ChunkSection[] = [{
-    blockCount: 1,
+  const chunkData: ChunkSection[] = Array(14).fill({
+    blockCount: 4096,
     bitsPerBlock: 4,
-    palette: [[0x2]], // only grass
-    data: Array(1).fill([0n])
-  }]
+    palette: [[89]],
+    data: Array(4096 * 4 / 64).fill([0x0n])
+  })
   const chunkArrays = chunkData.map(({ blockCount, bitsPerBlock, palette, data }) => ([blockCount, bitsPerBlock, palette, data]))
   const blockEntities: any[] = [] // compound tags
 
   return this.write({
     name: 'chunkData',
-    data: [chunkX, chunkY, false, 0b1, heightmap, biomes, chunkArrays, blockEntities]
+    data: [chunkX, chunkY, true, 0b1, heightmap, biomes, chunkArrays, blockEntities]
   })
 }
 

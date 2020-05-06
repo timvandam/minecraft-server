@@ -7,11 +7,11 @@ import VarInt from './VarInt'
 export default function (...DTs: DataTypeConstructor[]) {
   // Each element is an array!
   return class Array extends DataType<any[][]> {
-    protected read (data: Buffer): any[] {
+    protected read (data: Buffer, length?: number): any[] {
       const result = []
 
       // Fetch all values
-      for (let i = 0; i < data.length;) {
+      for (let i = 0, loops = 0; i < data.length && loops !== length; loops++) {
         const element = []
         for (let j = 0; j < DTs.length; j++) {
           const DT = DTs[j]

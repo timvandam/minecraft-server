@@ -13,6 +13,7 @@ import { EBossBarDivision } from '../enums/EBossBarDivision'
 import { EBossBarFlag } from '../enums/EBossBarFlag'
 import { longarray } from 'eznbt/lib/DataTypes/LongArray'
 import { Compound } from 'eznbt/lib/DataTypes/Compound'
+import { chunks, loadChunk } from '../WorldLoader'
 
 interface Player {
   UUID: string;
@@ -60,30 +61,19 @@ export function addPlayerInfo (this: MinecraftClient, players: PlayerToAdd[]): P
 /**
  * This overwrites the default behavior of the chunkData packet. This is needed as its schema
  * depends on its arguments
+ * @todo do everything thats needed to do. check whether the user has already loaded this chunk
+ * if so, set Full Chunk to false, etc.
+ * @todo load neighboring chunks as well!
  */
-export function chunkData (this: MinecraftClient, x: number, y: number): Promise<void> {
+export async function chunkData (this: MinecraftClient, x: number, y: number): Promise<void> {
   const chunkX = Math.floor(x / 16)
   const chunkY = Math.floor(y / 16)
+  const chunk = chunks.get(`${chunkX}-${chunkY}`) ?? loadChunk(chunkX, chunkY)
+  const fullChunk = await this.storage.get('chunks').has(chunk) === false
 
-  // TODO: Load world
-  /*
-  What we need:
-  - Heightmap (NBT Compound with MOTION_BLOCKING)
-    - MOTION_BLOCKING: 256 9-bit entries as a LongArray. Has y of the highest solid block.
-      - LongArray = Length<Int> + ...Longs
-  - Biomes? (1024 biome IDs ordered by x, z, y. Each one is a 4x4x4 area)
-  - Chunk data (array of Chunk Sections)
-  - Block entities
-   */
-
-  /** What is a (section) palette?
-   * Maps bit sequences to longer ones. Essentially a dictionary where you use indices
-   * to point to stuff. Kinda like what .zip does. The indices are at least 4 bits, max 8.
-   */
-
-  // No heightmap for now
+  // Research whether this is actually needed/what for
   const heightmap = {
-    MOTION_BLOCKING: longarray(...Array(36).fill(0n)),
+    // MOTION_BLOCKING: longarray(...Array(36).fill(0n)),
     [Symbol.for('NBTRootTagName')]: 'Heightmaps'
   }
 
@@ -108,7 +98,7 @@ export function chunkData (this: MinecraftClient, x: number, y: number): Promise
 
   return this.write({
     name: 'chunkData',
-    data: [chunkX, chunkY, true, 0b1, heightmap, biomes, chunkArrays, blockEntities]
+    data: [chunkX, chunkY, fullChunk, 0b1, heightmap, biomes, chunkArrays, blockEntities]
   })
 }
 

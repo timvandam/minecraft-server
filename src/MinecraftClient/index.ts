@@ -14,6 +14,7 @@ import * as helpers from './helperMethods'
 import { EventEmitter } from 'events'
 import Storage from './Storage'
 import LArray from '../DataTypes/LArray'
+import { Chunk } from '../WorldLoader'
 
 // TODO: Plugin injection
 type Plugin = (packets: EventEmitter, client: MinecraftClient) => void
@@ -39,7 +40,7 @@ export default class MinecraftClient extends Duplex {
   private compression = false
   public readonly packets = new PacketReader(this)
   public pluginMessage = new EventEmitter() // emits data whenever a plugin message is received
-  public storage = new Storage()
+  public readonly storage = new Storage()
   public state: ESocketState = ESocketState.HANDSHAKING
   // TODO: Provide an object with some convenience methods (e.g. Player Info with action bound)
   public send: PacketMethods = new Proxy<PacketMethods>(helpers ?? {}, {
@@ -67,6 +68,11 @@ export default class MinecraftClient extends Duplex {
 
     // Have the core plugin handle incoming packets
     core(this.packets, this)
+
+    // TODO: Set up storage
+    this.storage.set(
+      'chunks', new Set<Chunk>() // References to Chunks
+    )
 
     // Keep track of connected clients
     clients.add(this)

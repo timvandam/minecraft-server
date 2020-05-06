@@ -100,7 +100,7 @@ export function chunkData (this: MinecraftClient, x: number, y: number): Promise
   const chunkData: ChunkSection[] = Array(14).fill({
     blockCount: 4096,
     bitsPerBlock: 4,
-    palette: [[89]],
+    palette: [[3999]],
     data: Array(4096 * 4 / 64).fill([0x0n])
   })
   const chunkArrays = chunkData.map(({ blockCount, bitsPerBlock, palette, data }) => ([blockCount, bitsPerBlock, palette, data]))

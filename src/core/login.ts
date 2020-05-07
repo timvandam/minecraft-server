@@ -29,7 +29,8 @@ export default async function login (user: EventEmitter, client: MinecraftClient
         return
       }
       client.setVerifyToken(verifyToken)
-      client.storage.set('username', username)
+      client.username = username
+      client.storage.set({ username }, { username })
       client.send.encryptionRequest('', der, verifyToken)
     })
   })
@@ -46,13 +47,10 @@ export default async function login (user: EventEmitter, client: MinecraftClient
     client.enableEncryption(secret)
     try {
       const hexdigest = generateHexDigest(secret, der)
-      const profile = await fetchJoinedUser(client.storage.get('username'), hexdigest)
+      const username = client.username as string
+      const profile = await fetchJoinedUser(username, hexdigest)
       const uuid = profile.id.replace(/(\w{8})(\w{4})(\w{4})(\w{4})(\w{12})/, '$1-$2-$3-$4-$5')
-      await client.storage.set(
-        'uuid', uuid,
-        'username', profile.name,
-        'profile', profile
-      )
+      await client.storage.set({ username }, { uuid, username })
       // TODO: Allow different thresholds
       await client.send.setCompression(0)
       client.enableCompression()
@@ -60,7 +58,7 @@ export default async function login (user: EventEmitter, client: MinecraftClient
       client.state = ESocketState.PLAY
       client.send.joinGame(0, 0, 0, 1230981723n, 100, 'default', 32, false, true)
       client.send.pluginMessage('minecraft:brand', new LString({ value: 'tim' }).buffer) // the brand of this server is tim, nice
-      client.storage.set('position', { x: 0, y: 0, z: 100 })
+      client.storage.set({ username }, { x: 0, y: 0, z: 100 })
       // TODO: Send this to all players
       client.send.addPlayerInfo([{
         uuid,
@@ -72,7 +70,7 @@ export default async function login (user: EventEmitter, client: MinecraftClient
         displayName: profile.name
       }])
     } catch (error) {
-      logger.error(`Could not check whether ${await client.storage.get('username')} has joined - ${error.message}`)
+      logger.error(`Could not check whether ${client.username} has joined - ${error.message}`)
       logger.verbose(error.message)
       client.close()
     }

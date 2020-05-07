@@ -11,9 +11,7 @@ import { EPlayerInfoAction } from '../enums/EPlayerInfoAction'
 import { EBossBarColor } from '../enums/EBossBarColor'
 import { EBossBarDivision } from '../enums/EBossBarDivision'
 import { EBossBarFlag } from '../enums/EBossBarFlag'
-import { longarray } from 'eznbt/lib/DataTypes/LongArray'
-import { Compound } from 'eznbt/lib/DataTypes/Compound'
-import { chunks, loadChunk } from '../WorldLoader'
+import { loadChunk } from '../WorldLoader'
 
 interface Player {
   UUID: string;

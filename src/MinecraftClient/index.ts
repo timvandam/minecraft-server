@@ -12,9 +12,8 @@ import { Cipher, createCipheriv, createDecipheriv, Decipher } from 'crypto'
 import zlib from 'zlib'
 import * as helpers from './helperMethods'
 import { EventEmitter } from 'events'
-import Storage from './Storage'
-import LArray from '../DataTypes/LArray'
-import { Chunk } from '../WorldLoader'
+import Storage from '../Storage'
+import { EStorageType } from '../enums/EStorageType'
 
 // TODO: Plugin injection
 type Plugin = (packets: EventEmitter, client: MinecraftClient) => void
@@ -38,9 +37,10 @@ export default class MinecraftClient extends Duplex {
   private decipher: Decipher|undefined
   private verifyToken = Buffer.alloc(0)
   private compression = false
+  public username: string|undefined
   public readonly packets = new PacketReader(this)
   public pluginMessage = new EventEmitter() // emits data whenever a plugin message is received
-  public readonly storage = new Storage()
+  public readonly storage = new Storage(EStorageType.PLAYER, true, true) // consistent, cached p-data
   public state: ESocketState = ESocketState.HANDSHAKING
   // TODO: Provide an object with some convenience methods (e.g. Player Info with action bound)
   public send: PacketMethods = new Proxy<PacketMethods>(helpers ?? {}, {
@@ -68,11 +68,6 @@ export default class MinecraftClient extends Duplex {
 
     // Have the core plugin handle incoming packets
     core(this.packets, this)
-
-    // TODO: Set up storage
-    this.storage.set(
-      'chunks', new Set<Chunk>() // References to Chunks
-    )
 
     // Keep track of connected clients
     clients.add(this)

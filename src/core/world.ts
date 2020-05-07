@@ -9,6 +9,7 @@ import logger from '../logger'
  */
 // TODO: Tick system. Somehow synchonize this across instances (cluster)
 export default function world (user: EventEmitter, client: MinecraftClient) {
+  // TODO: Make the storage send events like this again
   client.storage.on('position', async () => {
     // Send chunk 0, 0 position as sample
     await client.send.updateViewPosition(0, 0)

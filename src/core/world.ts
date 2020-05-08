@@ -25,8 +25,8 @@ export default function world (user: EventEmitter, client: MinecraftClient) {
       client.send.chunkData(x + 16, z - 16),
       client.send.chunkData(x - 16, z - 16),
       client.send.chunkData(x + 16, z),
-      client.send.chunkData(x - 16, z)
-      logger.info('Chunk sent :)')
-    }
+      client.send.chunkData(x - 16, z)]
+    )
+    logger.info('Chunk sent :)')
   })
 }

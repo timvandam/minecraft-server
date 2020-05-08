@@ -65,7 +65,9 @@ export function addPlayerInfo (this: MinecraftClient, players: PlayerToAdd[]): P
  * @todo load neighboring chunks as well!
  */
 export async function chunkData (this: MinecraftClient, x: number, z: number): Promise<void> {
+  // Only load chunks for users that don't have this chunk loaded
   if (this.chunks.has(`${Math.floor(x / 16)}-${Math.floor(z / 16)}`)) return
+
   const chunk = await loadChunk(Math.floor(x / 16), Math.floor(z / 16))
 
   // Research whether this is actually needed/what for

@@ -12,6 +12,7 @@ import { EBossBarColor } from '../enums/EBossBarColor'
 import { EBossBarDivision } from '../enums/EBossBarDivision'
 import { EBossBarFlag } from '../enums/EBossBarFlag'
 import { loadChunk } from '../WorldLoader'
+import { longarray } from 'eznbt/lib/DataTypes/LongArray'
 
 interface Player {
   UUID: string;
@@ -64,36 +65,23 @@ export function addPlayerInfo (this: MinecraftClient, players: PlayerToAdd[]): P
  * @todo load neighboring chunks as well!
  */
 export async function chunkData (this: MinecraftClient, x: number, y: number, z: number): Promise<void> {
-  const chunk = loadChunk(x, z)
+  const chunk = await loadChunk(x, z)
 
   // Research whether this is actually needed/what for
   const heightmap = {
-    // MOTION_BLOCKING: longarray(...Array(36).fill(0n)),
+    MOTION_BLOCKING: longarray(...Array(36).fill(0n)),
     [Symbol.for('NBTRootTagName')]: 'Heightmaps'
   }
 
   // No full chunk/biomes for now
-  const biomes = Buffer.alloc(4 * 1024, 0)
+  const biomes = Buffer.from('00000001'.repeat(1024), 'hex')
 
-  // Array of chunk sections
-  interface ChunkSection {
-    blockCount: number; // short
-    bitsPerBlock: number; // ubyte. between 4 and 8
-    palette: number[][]; // varint array prefixed with varint length
-    data: bigint[][]; // long array prefixed by varint length
-  }
-  const chunkData: ChunkSection[] = Array(14).fill({
-    blockCount: 4096,
-    bitsPerBlock: 4,
-    palette: [[3999]],
-    data: Array(4096 * 4 / 64).fill([0x0n])
-  })
-  const chunkArrays = chunkData.map(({ blockCount, bitsPerBlock, palette, data }) => ([blockCount, bitsPerBlock, palette, data]))
+  const sections = chunk.sections.map(({ blockCount, bitsPerBlock, palette, data }) => ([blockCount, bitsPerBlock, palette, data]))
   const blockEntities: any[] = [] // compound tags
 
   return this.write({
     name: 'chunkData',
-    data: [chunkX, chunkY, fullChunk, 0b1, heightmap, biomes, chunkArrays, blockEntities]
+    data: [chunk.x, chunk.z, true, chunk.bitMask, heightmap, biomes, sections, blockEntities]
   })
 }
 

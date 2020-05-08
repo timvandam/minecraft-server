@@ -21,7 +21,7 @@ const models: Record<EStorageType, Model<Document>> = {
     x: Number,
     z: Number,
     y: Number,
-    blocks: Buffer // An array of Chunk Sections (like the Chunk Data packet)
+    blocks: Buffer // An array of blocks (currently 14 bits/block)
     // TODO: Store biomes somewhere
   }).index({ x: 1, y: 1, z: 1 }))
 }
@@ -33,13 +33,10 @@ models[EStorageType.CHUNK_SECTION].createIndexes()
 /**
  * Storage that will emit events whenever an element is set or unset
  * This will replace the storage used by MinecraftClient
- *
- * @todo: make set easier. client.storage.set should automatically use the client's username
  */
 export default class Storage extends EventEmitter {
   private readonly cache = new Map<unknown, Document>()
 
-  // TODO: Option to pass & update default selector
   constructor (private readonly schema: EStorageType, private useCache = false, private consistent = true) {
     super()
   }
@@ -77,10 +74,10 @@ export default class Storage extends EventEmitter {
       }
     }
 
-    const record = await models[this.schema].findOne(selector)
+    const record = await models[this.schema].findOne(selector) ?? await new models[this.schema](selector).save()
     const rollback: Record<string, unknown> = {} // create an object that reverses the update given in `data`
     for (const k of Object.keys(data)) {
-      rollback[k] = record?.get(k) ?? undefined // if no previous data is present, set it to undefined to remove it
+      rollback[k] = record.get(k) ?? undefined // if no previous data is present, set it to undefined to remove it
     }
 
     if (!this.consistent) emit(data)

@@ -58,7 +58,10 @@ export default async function login (user: EventEmitter, client: MinecraftClient
       client.state = ESocketState.PLAY
       client.send.joinGame(0, 0, 0, 1230981723n, 100, 'default', 32, false, true)
       client.send.pluginMessage('minecraft:brand', new LString({ value: 'tim' }).buffer) // the brand of this server is tim, nice
-      client.store({ position: [0, 100, 0] })
+      const { position = [] } = await client.get('position') as Record<string, number[]>
+      const [x = 0, y = 180, z = 0] = position
+      // TODO: Replace default values by spawn point
+      client.store({ position: [x, y, z] })
       // TODO: Send this to all players
       client.send.addPlayerInfo([{
         uuid,

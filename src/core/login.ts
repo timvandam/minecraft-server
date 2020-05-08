@@ -30,7 +30,7 @@ export default async function login (user: EventEmitter, client: MinecraftClient
       }
       client.setVerifyToken(verifyToken)
       client.username = username
-      client.storage.set({ username }, { username })
+      client.store({ username })
       client.send.encryptionRequest('', der, verifyToken)
     })
   })
@@ -50,7 +50,7 @@ export default async function login (user: EventEmitter, client: MinecraftClient
       const username = client.username as string
       const profile = await fetchJoinedUser(username, hexdigest)
       const uuid = profile.id.replace(/(\w{8})(\w{4})(\w{4})(\w{4})(\w{12})/, '$1-$2-$3-$4-$5')
-      await client.storage.set({ username }, { uuid, username })
+      await client.store({ uuid, username })
       // TODO: Allow different thresholds
       await client.send.setCompression(0)
       client.enableCompression()
@@ -58,7 +58,7 @@ export default async function login (user: EventEmitter, client: MinecraftClient
       client.state = ESocketState.PLAY
       client.send.joinGame(0, 0, 0, 1230981723n, 100, 'default', 32, false, true)
       client.send.pluginMessage('minecraft:brand', new LString({ value: 'tim' }).buffer) // the brand of this server is tim, nice
-      client.storage.set({ username }, { x: 0, y: 0, z: 100 })
+      client.store({ position: [0, 100, 0] })
       // TODO: Send this to all players
       client.send.addPlayerInfo([{
         uuid,

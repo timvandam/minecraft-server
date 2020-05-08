@@ -15,16 +15,15 @@ const connected = mongoose.connect('mongodb://localhost:27017/test', {
 const models: Record<EStorageType, Model<Document>> = {
   [EStorageType.PLAYER]: mongoose.model('player', new Schema({
     username: { type: String, unique: true },
-    location: Buffer // X-Y-Z. Double-Double-Double
+    position: [Schema.Types.Decimal128] // x-y-z
   }, { strict: false })),
   [EStorageType.CHUNK_SECTION]: mongoose.model('chunk_section', new Schema({
-    // TODO: Compound index on x, y, z
     x: Number,
     z: Number,
     y: Number,
     blocks: Buffer // An array of Chunk Sections (like the Chunk Data packet)
     // TODO: Store biomes somewhere
-  }).index({ x: 1, z: 1, y: 1 }))
+  }).index({ x: 1, y: 1, z: 1 }))
 }
 
 // Create indices
@@ -38,7 +37,7 @@ models[EStorageType.CHUNK_SECTION].createIndexes()
  * @todo: make set easier. client.storage.set should automatically use the client's username
  */
 export default class Storage extends EventEmitter {
-  private readonly cache = new Map<unknown, object>()
+  private readonly cache = new Map<unknown, Document>()
 
   // TODO: Option to pass & update default selector
   constructor (private readonly schema: EStorageType, private useCache = false, private consistent = true) {
@@ -69,42 +68,41 @@ export default class Storage extends EventEmitter {
   /**
    * Adds data pairs to the storage. When non-consistent will emit predicted updated values
    */
-  async set (selector: object, data: object): Promise<void> {
+  async set (selector: Record<string, unknown>, data: Record<string, unknown>): Promise<void> {
     await connected
-    // If consistent: update first, then emit
-    if (this.consistent) {
-      const updated: object = await models[this.schema].findOneAndUpdate(
-        selector,
-        data,
-        { new: true, lean: true, upsert: true })
-      if (this.useCache) this.cache.set(selector, updated)
-      this.emit(EStorageType[this.schema], updated)
-    } else {
-      // If non-consistent: emit predicted if available, update, emit
-      const cached = this.useCache && this.cache.has(selector)
-        ? this.cache.get(selector)
-        : undefined
-      if (cached) this.emit(EStorageType[this.schema], { ...cached, data })
-      models[this.schema].findOneAndUpdate(
-        selector,
-        data,
-        { new: true, lean: true, upsert: true })
-        .then((updated: object) => {
-          if (this.useCache) this.cache.set(selector, updated)
-          this.emit(EStorageType[this.schema], { ...cached, data })
-        })
+
+    const emit = (data: object): void => {
+      for (const [k, v] of Object.entries(data)) {
+        this.emit(k, v, selector)
+      }
     }
+
+    const record = await models[this.schema].findOne(selector)
+    const rollback: Record<string, unknown> = {} // create an object that reverses the update given in `data`
+    for (const k of Object.keys(data)) {
+      rollback[k] = record?.get(k) ?? undefined // if no previous data is present, set it to undefined to remove it
+    }
+
+    if (!this.consistent) emit(data)
+    await record?.updateOne(data)
+      .then(() => {
+        if (this.useCache) this.cache.set(selector, record)
+        if (this.consistent) emit(data)
+      })
+      .catch(() => {
+        emit(rollback)
+      })
   }
 
   /**
    * Gets a value or multiple values
    */
-  async get (selector: object): Promise<unknown> {
+  async get (selector: object): Promise<Document|undefined> {
     await connected
     const value = this.cache.has(selector)
-      ? this.cache.get(selector) as object
-      : await models[this.schema].find(selector).lean(true).exec()
-    if (!this.cache.has(selector)) this.cache.set(selector, value)
+      ? this.cache.get(selector)
+      : await models[this.schema].findOne(selector) ?? undefined
+    if (!this.cache.has(selector) && value) this.cache.set(selector, value)
     return value
   }
 }

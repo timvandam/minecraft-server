@@ -63,11 +63,8 @@ export function addPlayerInfo (this: MinecraftClient, players: PlayerToAdd[]): P
  * if so, set Full Chunk to false, etc.
  * @todo load neighboring chunks as well!
  */
-export async function chunkData (this: MinecraftClient, x: number, y: number): Promise<void> {
-  const chunkX = Math.floor(x / 16)
-  const chunkY = Math.floor(y / 16)
-  const chunk = chunks.get(`${chunkX}-${chunkY}`) ?? loadChunk(chunkX, chunkY)
-  const fullChunk = await this.storage.get('chunks').has(chunk) === false
+export async function chunkData (this: MinecraftClient, x: number, y: number, z: number): Promise<void> {
+  const chunk = loadChunk(x, z)
 
   // Research whether this is actually needed/what for
   const heightmap = {

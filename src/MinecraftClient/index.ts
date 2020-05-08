@@ -14,6 +14,7 @@ import * as helpers from './helperMethods'
 import { EventEmitter } from 'events'
 import Storage from '../Storage'
 import { EStorageType } from '../enums/EStorageType'
+import { Document } from 'mongoose'
 
 // TODO: Plugin injection
 type Plugin = (packets: EventEmitter, client: MinecraftClient) => void
@@ -37,10 +38,10 @@ export default class MinecraftClient extends Duplex {
   private decipher: Decipher|undefined
   private verifyToken = Buffer.alloc(0)
   private compression = false
+  public readonly storage = new Storage(EStorageType.PLAYER, true, true) // consistent, cached p-data
   public username: string|undefined
   public readonly packets = new PacketReader(this)
   public pluginMessage = new EventEmitter() // emits data whenever a plugin message is received
-  public readonly storage = new Storage(EStorageType.PLAYER, true, true) // consistent, cached p-data
   public state: ESocketState = ESocketState.HANDSHAKING
   // TODO: Provide an object with some convenience methods (e.g. Player Info with action bound)
   public send: PacketMethods = new Proxy<PacketMethods>(helpers ?? {}, {
@@ -75,6 +76,25 @@ export default class MinecraftClient extends Duplex {
       clients.delete(this)
       this.end() // this should finish the writable
     })
+  }
+
+  /**
+   * Stores a named value in the user's database record
+   */
+  store (values: Record<string, unknown>) {
+    if (!this.username) throw new Error('Username needs to be known for storing stuff')
+    return this.storage.set({ username: this.username }, values)
+  }
+
+  /**
+   * Retrieves a named value from the user's database record
+   */
+  async get (...keys: string[]) {
+    if (!this.username) throw new Error('Username needs to be known for retrieving stored stuff')
+    const doc: Document|undefined = await this.storage.get({ username: this.username })
+    const res: Record<string, unknown> = {}
+    keys.forEach(k => { res[k] = doc?.get(k) })
+    return res
   }
 
   /**

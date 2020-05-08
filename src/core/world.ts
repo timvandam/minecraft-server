@@ -10,11 +10,11 @@ import logger from '../logger'
 // TODO: Tick system. Somehow synchonize this across instances (cluster)
 export default function world (user: EventEmitter, client: MinecraftClient) {
   // TODO: Make the storage send events like this again
-  client.storage.on('position', async () => {
-    // Send chunk 0, 0 position as sample
+  client.storage.on('position', async ([x, y, z]: number[]) => {
+    // Send chunk 0, 0 position as sample)
     await client.send.updateViewPosition(0, 0)
     // Player position
-    await client.send.playerPositionAndLook(0, 20, 0, 0, 0, 0, 0)
+    await client.send.playerPositionAndLook(x, y, z, 0, 0, 0, 0)
     const uuid = Buffer.allocUnsafe(16).toString('hex')
     let health = 0
     let d = 1
@@ -25,7 +25,7 @@ export default function world (user: EventEmitter, client: MinecraftClient) {
       client.send.updateBossBarHealth(uuid, health / 12)
     }, 100)
     // Send chunk
-    await client.send.chunkData(0, 0)
+    await client.send.chunkData(x, y, z)
     logger.info('Chunk sent :)')
   })
 }

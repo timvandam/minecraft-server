@@ -80,14 +80,28 @@ export default class Storage extends EventEmitter {
       rollback[k] = record.get(k) ?? undefined // if no previous data is present, set it to undefined to remove it
     }
 
-    if (!this.consistent) emit(data)
+    // Emit and update cache if non-consistent
+    if (!this.consistent) {
+      emit(data)
+      if (this.useCache && this.cache.has(selector)) {
+        const doc = this.cache.get(selector) as Document
+        for (const [k, v] of Object.entries(data)) doc.set(k, v)
+      }
+    }
+
     await record?.updateOne(data)
       .then(() => {
+        // Update cache. If non-consistent emit new data
         if (this.useCache) this.cache.set(selector, record)
         if (this.consistent) emit(data)
       })
       .catch(() => {
         emit(rollback)
+        // Undo changes when it failed
+        if (!this.consistent && this.useCache && this.cache.has(selector)) {
+          const doc = this.cache.get(selector) as Document
+          for (const [k, v] of Object.entries(rollback)) doc.set(k, v)
+        }
       })
   }
 

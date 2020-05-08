@@ -93,20 +93,17 @@ function createChunkSection (doc: Document): ChunkSection {
     blockLongs.push(BigInt(chunk))
   }
 
-  section.data = blockLongs.map(long => ([long]))
+  section.data = blockLongs.map(long => [long])
 
   return section
 }
 
 // Load from central chunk storage
 export async function loadChunk (x: number, z: number): Promise<Chunk> {
-  // Convert coordinates to chunk coordinates
-  x %= 16
-  z %= 16
-
   // Fetch all chunk sections
   // TODO: Fetch these better (with a range query)
-  const sections = await Promise.all(Array(16).fill(0).map((e, y) => chunkStorage.get({ x, y, z })))
+  // TODO: Dont use x=z=0 anymore
+  const sections = await Promise.all(Array(16).fill(0).map((e, y) => chunkStorage.get({ x: 0, y, z: 0 })))
 
   // Compose a bitmask. 1-bits indicate that a section is present (where LSB: y = 0, MSB: y = 15)
   let bitMask = 0b0

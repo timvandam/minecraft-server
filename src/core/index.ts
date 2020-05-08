@@ -4,6 +4,7 @@ import login from './login'
 import join from './join'
 import world from './world'
 import MinecraftClient from '../MinecraftClient'
+import movement from './movement'
 
 /**
  * The core of the minecraft server. Without this the server would do nothing...
@@ -13,4 +14,5 @@ export default function core (...args: [EventEmitter, MinecraftClient]) {
   login(...args)
   join(...args)
   world(...args)
+  movement(...args)
 }

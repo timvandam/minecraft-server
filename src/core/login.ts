@@ -60,7 +60,6 @@ export default async function login (user: EventEmitter, client: MinecraftClient
       client.send.pluginMessage('minecraft:brand', new LString({ value: 'tim' }).buffer) // the brand of this server is tim, nice
       const { position = [] } = await client.get('position') as Record<string, number[]>
       const [x = 0, y = 180, z = 0] = position
-      // TODO: Replace default values by spawn point
       client.store({ position: [x, y, z] })
       // TODO: Send this to all players
       client.send.addPlayerInfo([{

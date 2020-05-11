@@ -32,7 +32,7 @@ server.listen({
 
 // Send time updates to all players every second
 let time = 0n
-let d = 20n
+const d = 20n
 // TODO: Per client
 setInterval(() => {
   time += d
@@ -41,4 +41,4 @@ setInterval(() => {
     if (player.state !== ESocketState.PLAY) return
     player.send.timeUpdate(time, tod)
   })
-}, 10)
+}, 1000)

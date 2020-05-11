@@ -5,6 +5,7 @@ import join from './join'
 import world from './world'
 import MinecraftClient from '../MinecraftClient'
 import movement from './movement'
+import chat from './chat'
 
 /**
  * The core of the minecraft server. Without this the server would do nothing...
@@ -15,4 +16,5 @@ export default function core (...args: [EventEmitter, MinecraftClient]) {
   join(...args)
   world(...args)
   movement(...args)
+  chat(...args)
 }

@@ -23,6 +23,7 @@ import Float from '../DataTypes/Float'
 import Short from '../DataTypes/Short'
 import NonLArray from '../DataTypes/Array'
 import LbArray from '../DataTypes/LbArray'
+import { Position } from '../DataTypes/Position'
 
 export interface Packet {
   name: string;
@@ -53,10 +54,11 @@ const alphabet: Map<string, DataTypeConstructor> = new Map()
   .set('Ub', UByte)
   .set('By', Byte)
   .set('Ba', ByteArray)
-  // .set('P', Position)
+  .set('P', Position)
   .set('I', Int)
   .set('D', Double)
   .set('F', Float)
+  // .set('N', Node)
 
 // TODO: Ig() function for values to read but ignore (remove from the buffer)
 const fns: Map<string, Function> = new Map()

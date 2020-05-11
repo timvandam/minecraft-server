@@ -66,9 +66,11 @@ export function addPlayerInfo (this: MinecraftClient, players: PlayerToAdd[]): P
  */
 export async function chunkData (this: MinecraftClient, x: number, z: number): Promise<void> {
   // Only load chunks for users that don't have this chunk loaded
-  if (this.chunks.has(`${Math.floor(x / 16)}-${Math.floor(z / 16)}`)) return
+  const chunkX = Math.floor(x / 16)
+  const chunkZ = Math.floor(z / 16)
+  if (this.chunks.has(`${chunkX}-${chunkZ}`)) return
 
-  const chunk = await loadChunk(Math.floor(x / 16), Math.floor(z / 16))
+  const chunk = await loadChunk(chunkX, chunkZ)
 
   // Research whether this is actually needed/what for
   const heightmap = {

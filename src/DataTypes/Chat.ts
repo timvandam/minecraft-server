@@ -5,6 +5,8 @@ import { EFormats } from '../enums/EFormats'
 
 const prefix = '&'
 
+// TODO: Fix chat. &abye creates `ye`
+
 interface ChatObj {
   text: string;
   color?: EColors;

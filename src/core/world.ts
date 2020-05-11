@@ -1,24 +1,42 @@
 import { EventEmitter } from 'events'
 import MinecraftClient from '../MinecraftClient'
-import { EBossBarColor } from '../enums/EBossBarColor'
-import { EBossBarDivision } from '../enums/EBossBarDivision'
-import logger from '../logger'
+import { EClickStatus } from '../enums/EClickStatus'
+import { EBlockFace } from '../enums/EBlockFace'
 
 /**
  * Computes the coordinates of nearby chunks given the initial coordinate and render distance.
- *
- * `x` and `z` are block coordinates.
+ * The order of the result in a circle around the original chunk starting at the top. Every iteration its radius increases.
  */
-function getNearbyChunks (x: number, z: number, renderDistance: number): number[][] {
-  const coordinates: number[][] = []
+const offsets = [[0, 1], [1, 0], [0, -1], [-1, 0]]
+function getNearbyChunks (client: MinecraftClient, chunkX: number, chunkZ: number, renderDistance: number): number[][] {
+  const maxChunks = (renderDistance + 1) ** 2
 
-  for (let dx = -renderDistance; dx < renderDistance + 1; dx++) {
-    for (let dz = -renderDistance; dz < renderDistance + 1; dz++) {
-      coordinates.push([x + dx * 16, z + dz * 16])
+  const known: Map<number, Set<number>> = new Map() // x => { z }
+  const queue: Set<number[]> = new Set([])
+  const result: number[][] = []
+
+  queue.add([chunkX, chunkZ])
+
+  for (const [x, z] of queue) {
+    if (!client.hasChunk(x, z)) {
+      client.addChunk(x, z)
+      result.push([x, z])
+    }
+
+    for (const [dx, dz] of offsets) {
+      if (queue.size >= maxChunks) break
+      const nx = x + dx
+      const nz = z + dz
+      if (known.get(nx)?.has(nz)) continue
+      let set: Set<number> = new Set()
+      if (!known.has(nx)) known.set(nx, set)
+      else set = known.get(nx) as Set<number>
+      set.add(nz)
+      queue.add([nx, nz])
     }
   }
 
-  return coordinates
+  return result
 }
 
 /**
@@ -33,16 +51,30 @@ export default function world (user: EventEmitter, client: MinecraftClient) {
     // Player position
     const chunkX = Math.floor(x / 16)
     const chunkZ = Math.floor(z / 16)
-    client.send.updateViewPosition(chunkX, chunkZ)
+    await client.send.updateViewPosition(chunkX, chunkZ)
     // Send chunk
     if (!client.chunks.size) await client.send.playerPositionAndLook(x, y, z, 0, 0, 0, 0)
-    // TODO: Use render distance for this
 
     const { renderDistance = 10 } = await client.get('renderDistance') as Record<string, number>
 
-    const chunkCoords = getNearbyChunks(x, z, renderDistance)
+    const chunkCoords = getNearbyChunks(client, chunkX, chunkZ, renderDistance)
     // TODO: Unload all chunks outside of this range that are in client.chunks
-    await Promise.all(chunkCoords.map(([x, z]) => client.send.chunkData(x, z)))
-    // logger.info('Chunks sent :)')
+    for (const [x, z] of chunkCoords) {
+      await client.send.chunkData(x, z)
+    }
+  })
+
+  user.on('playerDigging', async (status: EClickStatus, [x, y, z]: number[], face: EBlockFace) => {
+    // TODO: Drop item etc is also in here
+    // TODO: Make sure this works
+    // client.send.acknowledgePlayerDigging([x, y, z], 9, status, true)
+    console.log(EClickStatus[status], x, y, z)
+    if (status === EClickStatus.FINISHED_DIGGING) {
+      await client.send.acknowledgePlayerDigging([x, y, z], 0, status, false)
+      // client.send.blockChange([x, y, z], 8)
+    } else if (status === EClickStatus.STARTED_DIGGING) {
+      console.log('started digging!')
+      // await client.send.acknowledgePlayerDigging([x, y, z], 9, EClickStatus.STARTED_DIGGING, false)
+    }
   })
 }

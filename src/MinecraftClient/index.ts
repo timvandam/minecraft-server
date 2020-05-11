@@ -38,7 +38,7 @@ export default class MinecraftClient extends Duplex {
   private decipher: Decipher|undefined
   private verifyToken = Buffer.alloc(0)
   private compression = false
-  public readonly chunks = new Set<string>()
+  public readonly chunks = new Map<number, Set<number>>() // x => { z1, z2, ..., zn }
   public readonly storage = new Storage(EStorageType.PLAYER, true, true) // consistent, cached p-data
   public username: string|undefined
   public readonly packets = new PacketReader(this)
@@ -77,6 +77,28 @@ export default class MinecraftClient extends Duplex {
       clients.delete(this)
       this.end() // this should finish the writable
     })
+  }
+
+  /**
+   * Returns whether a certain chunk has already been loaded for this client
+   */
+  hasChunk (x: number, z: number): boolean {
+    if (!this.chunks.has(x)) {
+      this.chunks.set(x, new Set())
+      return false
+    }
+
+    return this.chunks.get(x)?.has(z) ?? false
+  }
+
+  /**
+   * Adds a chunk to the loaded chunks list
+   */
+  addChunk (x: number, z: number): void {
+    let set = new Set<number>()
+    if (!this.chunks.has(x)) this.chunks.set(x, set)
+    else set = this.chunks.get(x) as Set<number>
+    set.add(z)
   }
 
   /**

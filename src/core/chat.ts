@@ -15,6 +15,7 @@ export default function chat (user: EventEmitter, client: MinecraftClient) {
   })
 
   user.on('command#spawn', () => {
+    console.log('spawn')
     client.send.playerPositionAndLook(0, 180, 0, 0, 0, 0, 0)
   })
 }

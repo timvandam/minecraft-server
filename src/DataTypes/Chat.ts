@@ -1,7 +1,7 @@
 import { DataType } from './DataType'
 import LString from './LString'
 import { EColors } from '../enums/EColors'
-import { EFormats } from '../enums/EFormats'
+import { EFormat } from '../enums/EFormat'
 
 const prefix = '&'
 
@@ -30,7 +30,7 @@ export function parseChatString (str: string): ChatObj {
   }
 
   let currentColor: EColors | undefined
-  let currentFormat: EFormats | undefined
+  let currentFormat: EFormat | undefined
   for (let chunk of chunks) {
     if (!chunk) continue
     const next = chunk.charAt(0)
@@ -39,7 +39,7 @@ export function parseChatString (str: string): ChatObj {
     const color = EColors[next]
     // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
     // @ts-ignore
-    const format = EFormats[next]
+    const format = EFormat[next]
     if (color) currentColor = color
     if (format) currentFormat = format
     if (format || color) chunk = chunk.slice(1)
@@ -68,11 +68,11 @@ export function stringifyChatObj (chat: ChatObj): string {
   // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
   // @ts-ignore
   if (color) result += prefix + EColors[color]
-  if (bold) result += prefix + EFormats.bold
-  if (italic) result += prefix + EFormats.italic
-  if (obfuscated) result += prefix + EFormats.obfuscated
-  if (strikethrough) result += prefix + EFormats.strikethrough
-  if (underlined) result += prefix + EFormats.underlined
+  if (bold) result += prefix + EFormat.bold
+  if (italic) result += prefix + EFormat.italic
+  if (obfuscated) result += prefix + EFormat.obfuscated
+  if (strikethrough) result += prefix + EFormat.strikethrough
+  if (underlined) result += prefix + EFormat.underlined
 
   result += text
 

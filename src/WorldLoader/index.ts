@@ -1,30 +1,30 @@
 import Storage from '../Storage'
 import { EStorageType } from '../enums/EStorageType'
 import { Document } from 'mongoose'
+import VarInt from '../DataTypes/VarInt'
 
 // Chunk storage without caching (it's expensive for chunks!)
 const chunkStorage = new Storage(EStorageType.CHUNK_SECTION, false, false)
 
-// Grass chunk
-// const str = '00000000001001'.repeat(4095) + '00000000000000'
-// const blocks = Array.from(stringIterator(str, 8)).map(e => {
-//   const r = parseInt(e, 2).toString(16)
-//   return `${'0'.repeat(2 - r.length)}${r}`
-// }).join('')
-// chunkStorage.set({ x: 0, y: 10, z: 0 }, { blocks: Buffer.from(blocks, 'hex') })
+// TODO: generateChunk method
+// chunkStorage.set({ x: 0, y: 10, z: 0 }, {
+//   blockCount: 4096,
+//   bitsPerBlock: 4,
+//   palette: Buffer.concat([new VarInt({ value: 1 }).buffer, new VarInt({ value: 9 }).buffer]), // length = 1, block = grass
+//   blocks: Buffer.alloc(256) // 4096 * 4 bits = 256 bytes
+// })
 
-// TODO: Better block storage in the db
+// TODO: Support no palettes
 interface ChunkSection {
   blockCount: number;
   bitsPerBlock: number;
-  palette: number[][];
-  data: bigint[][];
+  palette: Buffer;
+  data: Buffer;
 }
 
 interface Chunk {
   x: number;
   z: number;
-  // TODO: Heightmap, Biomes, BlockEntities
   bitMask: number;
   sections: ChunkSection[];
 }
@@ -34,6 +34,7 @@ const BITS_PER_BLOCK = 14
 /**
  * Iterates through n-bit sections of a buffer.
  */
+// TODO: Don't rely on strings bruh
 function * bitIterator (buf: Buffer, bitsPerBlock: number) {
   const bytes = Array.from(buf.values())
   const bits = bytes.map(num => {
@@ -61,38 +62,11 @@ function * stringIterator (str: string, charsPerChunk: number) {
  */
 function createChunkSection (doc: Document): ChunkSection {
   const section: ChunkSection = {
-    blockCount: 0,
-    bitsPerBlock: 0,
-    palette: [],
-    data: []
+    blockCount: doc.get('blockCount') as number,
+    bitsPerBlock: doc.get('bitsPerBlock') as number,
+    palette: doc.get('palette') as Buffer,
+    data: doc.get('blocks') as Buffer
   }
-  const blockBuffer = doc.get('blocks')
-  const palette = new Map<number, number>() // maps block # to palette array index
-  for (const block of bitIterator(blockBuffer, BITS_PER_BLOCK)) {
-    if (block) section.blockCount++
-    if (palette.has(block)) continue
-    palette.set(block, palette.size)
-    section.palette.push([block])
-  }
-
-
-  section.bitsPerBlock = Math.max(4, Math.floor(Math.log2(section.palette.length)) + 1)
-
-  // Create a string of blocks using the palette
-  let blockBits = ''
-  for (const block of bitIterator(blockBuffer, BITS_PER_BLOCK)) {
-    const paletteId = (palette.get(block) as number).toString(2)
-    blockBits += `${'0'.repeat(section.bitsPerBlock - paletteId.length)}${paletteId}`
-  }
-
-  // Then convert blockBits into a BigUint64Array
-  const blockLongs = []
-  for (let chunk of stringIterator(blockBits, 64)) {
-    chunk = `0b${chunk}${'0'.repeat(64 - chunk.length)}`
-    blockLongs.push(BigInt(chunk))
-  }
-
-  section.data = blockLongs.map(long => [long])
 
   return section
 }
@@ -101,14 +75,14 @@ function createChunkSection (doc: Document): ChunkSection {
 export async function loadChunk (x: number, z: number): Promise<Chunk> {
   // Fetch all chunk sections
   // TODO: Fetch these better (with a range query)
-  // TODO: Dont use x=z=0 anymore
-  const sections = await Promise.all(Array(16).fill(0).map((e, y) => chunkStorage.get({ x: 0, y, z: 0 })))
+  const sections = await Promise.all(Array(16).fill(0).map((e, y) => chunkStorage.get({ x, y, z })))
 
   // Compose a bitmask. 1-bits indicate that a section is present (where LSB: y = 0, MSB: y = 15)
   let bitMask = 0b0
   // Reverse so we start at y = 15 (MSB)
-  sections.forEach((section, y) => {
-    bitMask |= (section ? 1 : 0) << y // 1 if section is present, 0 otherwise
+  sections.forEach((section) => {
+    const y = section?.get('y') ?? -1
+    bitMask |= 1 << y // if section is not present, will resolve to 0
   })
 
   // Transform sections into ChunkSection objects

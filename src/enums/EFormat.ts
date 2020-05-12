@@ -1,4 +1,4 @@
-export enum EFormats {
+export enum EFormat {
   obfuscated = 'k',
   bold = 'l',
   strikethrough = 'm',

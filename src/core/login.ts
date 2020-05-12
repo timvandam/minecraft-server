@@ -5,6 +5,7 @@ import logger from '../logger'
 import { fetchJoinedUser, generateHexDigest } from './auth'
 import { ESocketState } from '../enums/ESocketState'
 import LString from '../DataTypes/LString'
+import { EPlayerAbilityFlag } from '../enums/EPlayerAbilityFlag'
 
 const { RSA_PKCS1_PADDING } = crypto.constants
 
@@ -61,6 +62,7 @@ export default async function login (user: EventEmitter, client: MinecraftClient
       const { position = [] } = await client.get('position') as Record<string, number[]>
       const [x = 0, y = 180, z = 0] = position
       client.store({ position: [x, y, z] })
+      client.send.playerAbilities(EPlayerAbilityFlag.ALLOW_FLYING | EPlayerAbilityFlag.CREATIVE_MODE, 0.05, 0.1)
       // TODO: Send this to all players
       client.send.addPlayerInfo([{
         uuid,

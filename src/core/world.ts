@@ -66,10 +66,11 @@ export default function world (user: EventEmitter, client: MinecraftClient) {
 
   user.on('playerDigging', (status: EClickStatus, [x, y, z]: number[], face: EBlockFace) => {
     // TODO: Drop item etc is also in here
-    // TODO: Send the right block id back
+    // TODO: Send the right block id back. get chunk, compute offset, use palette to fetch block
     if (status === EClickStatus.FINISHED_DIGGING) {
-      client.send.acknowledgePlayerDigging([x, y, z], 9, status, true)
-      client.send.blockChange([x, y, z], 0)
+      client.send.acknowledgePlayerDigging([x, y, z], 0, status, true)
+      // client.send.blockChange([x, y, z], 0)
+      console.log('block broken!')
     } else if (status === EClickStatus.STARTED_DIGGING) {
       client.send.acknowledgePlayerDigging([x, y, z], 9, status, true)
     }

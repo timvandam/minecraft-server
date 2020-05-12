@@ -21,7 +21,11 @@ const models: Record<EStorageType, Model<Document>> = {
     x: Number,
     z: Number,
     y: Number,
-    blocks: Buffer // An array of blocks (currently 14 bits/block)
+    palette: Buffer,
+    blockCount: Number,
+    bitsPerBlock: Number,
+    blocks: Buffer
+    // TODO: Block Entities
     // TODO: Store biomes somewhere
   }).index({ x: 1, y: 1, z: 1 }))
 }

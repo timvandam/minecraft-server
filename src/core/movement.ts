@@ -17,7 +17,7 @@ export default function movement (user: EventEmitter, client: MinecraftClient) {
     client.store({ position: [x, y, z] })
     if (onGround) {
       client.send.blockChange([x, y - 1, z], 1426)
-      client.send.blockBreakAnimation(0, [x, y - 1, z], 9)
+      // client.send.blockBreakAnimation(0, [x, y - 1, z], 9)
     }
   })
 }

@@ -6,7 +6,7 @@ import { Document } from 'mongoose'
 const chunkStorage = new Storage(EStorageType.CHUNK_SECTION, false, false)
 
 // Grass chunk
-// const str = '00000000001001'.repeat(4096)
+// const str = '00000000001001'.repeat(4095) + '00000000000000'
 // const blocks = Array.from(stringIterator(str, 8)).map(e => {
 //   const r = parseInt(e, 2).toString(16)
 //   return `${'0'.repeat(2 - r.length)}${r}`
@@ -68,19 +68,19 @@ function createChunkSection (doc: Document): ChunkSection {
   }
   const blockBuffer = doc.get('blocks')
   const palette = new Map<number, number>() // maps block # to palette array index
-  const blocks = bitIterator(blockBuffer, BITS_PER_BLOCK)
-  for (const block of blocks) {
+  for (const block of bitIterator(blockBuffer, BITS_PER_BLOCK)) {
+    if (block) section.blockCount++
     if (palette.has(block)) continue
     palette.set(block, palette.size)
     section.palette.push([block])
-    if (block) section.blockCount++
   }
+
 
   section.bitsPerBlock = Math.max(4, Math.floor(Math.log2(section.palette.length)) + 1)
 
-  // First bits because why not
+  // Create a string of blocks using the palette
   let blockBits = ''
-  for (const block of blocks) {
+  for (const block of bitIterator(blockBuffer, BITS_PER_BLOCK)) {
     const paletteId = (palette.get(block) as number).toString(2)
     blockBits += `${'0'.repeat(section.bitsPerBlock - paletteId.length)}${paletteId}`
   }
@@ -89,7 +89,6 @@ function createChunkSection (doc: Document): ChunkSection {
   const blockLongs = []
   for (let chunk of stringIterator(blockBits, 64)) {
     chunk = `0b${chunk}${'0'.repeat(64 - chunk.length)}`
-    // eslint-disable-next-line no-undef
     blockLongs.push(BigInt(chunk))
   }
 

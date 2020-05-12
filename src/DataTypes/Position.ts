@@ -28,8 +28,8 @@ export class Position extends DataType<number[]> {
   protected read (data: Buffer): number[] {
     const long = data.readBigUInt64BE()
     const x = readTwosComplement(Number((long & xMask) >> 38n), 26)
-    const y = readTwosComplement(Number(long & yMask), 12)
     const z = readTwosComplement(Number((long & zMask) >> 12n), 26)
+    const y = readTwosComplement(Number(long & yMask), 12)
     return [x, y, z]
   }
 

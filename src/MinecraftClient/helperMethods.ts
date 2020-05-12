@@ -58,11 +58,9 @@ export function addPlayerInfo (this: MinecraftClient, players: PlayerToAdd[]): P
 }
 
 /**
- * This overwrites the default behavior of the chunkData packet. This is needed as its schema
- * depends on its arguments
- * @todo do everything thats needed to do. check whether the user has already loaded this chunk
- * if so, set Full Chunk to false, etc.
- * @todo load neighboring chunks as well!
+ * This overwrites the default behavior of the chunkData packet.
+ *
+ * @todo only send the nearest chunk section for faster loading. replace any ores with stone to prevent xray
  */
 export async function chunkData (this: MinecraftClient, x: number, z: number): Promise<void> {
   const chunk = await loadChunk(x, z)

@@ -64,17 +64,14 @@ export default function world (user: EventEmitter, client: MinecraftClient) {
     }
   })
 
-  user.on('playerDigging', async (status: EClickStatus, [x, y, z]: number[], face: EBlockFace) => {
+  user.on('playerDigging', (status: EClickStatus, [x, y, z]: number[], face: EBlockFace) => {
     // TODO: Drop item etc is also in here
-    // TODO: Make sure this works
-    // client.send.acknowledgePlayerDigging([x, y, z], 9, status, true)
-    console.log(EClickStatus[status], x, y, z)
+    // TODO: Send the right block id back
     if (status === EClickStatus.FINISHED_DIGGING) {
-      await client.send.acknowledgePlayerDigging([x, y, z], 0, status, false)
-      // client.send.blockChange([x, y, z], 8)
+      client.send.acknowledgePlayerDigging([x, y, z], 9, status, true)
+      client.send.blockChange([x, y, z], 0)
     } else if (status === EClickStatus.STARTED_DIGGING) {
-      console.log('started digging!')
-      // await client.send.acknowledgePlayerDigging([x, y, z], 9, EClickStatus.STARTED_DIGGING, false)
+      client.send.acknowledgePlayerDigging([x, y, z], 9, status, true)
     }
   })
 }

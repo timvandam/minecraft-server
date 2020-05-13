@@ -2,6 +2,7 @@ import { EventEmitter } from 'events'
 import MinecraftClient from '../MinecraftClient'
 import { EClickStatus } from '../enums/EClickStatus'
 import { EBlockFace } from '../enums/EBlockFace'
+import { getBlocks } from '../WorldLoader'
 
 /**
  * Computes the coordinates of nearby chunks given the initial coordinate and render distance.
@@ -64,15 +65,13 @@ export default function world (user: EventEmitter, client: MinecraftClient) {
     }
   })
 
-  user.on('playerDigging', (status: EClickStatus, [x, y, z]: number[], face: EBlockFace) => {
-    // TODO: Drop item etc is also in here
-    // TODO: Send the right block id back. get chunk, compute offset, use palette to fetch block
+  user.on('playerDigging', async (status: EClickStatus, [x, y, z]: number[], face: EBlockFace) => {
     if (status === EClickStatus.FINISHED_DIGGING) {
-      client.send.acknowledgePlayerDigging([x, y, z], 0, status, true)
-      // client.send.blockChange([x, y, z], 0)
-      console.log('block broken!')
-    } else if (status === EClickStatus.STARTED_DIGGING) {
-      client.send.acknowledgePlayerDigging([x, y, z], 9, status, true)
+      const [block] = await getBlocks([[x, y, z]])
+      console.log('broke block', block)
+      client.send.acknowledgePlayerDigging([x, y, z], block, status, true)
+      client.send.blockChange([x, y, z], 0)
+      // TODO: Drop block and update chunk
     }
   })
 }

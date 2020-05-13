@@ -62,7 +62,7 @@ export default async function login (user: EventEmitter, client: MinecraftClient
       const { position = [] } = await client.get('position') as Record<string, number[]>
       const [x = 0, y = 180, z = 0] = position
       client.store({ position: [x, y, z] })
-      client.send.playerAbilities(EPlayerAbilityFlag.ALLOW_FLYING | EPlayerAbilityFlag.CREATIVE_MODE, 0.05, 0.1)
+      client.send.playerAbilities(EPlayerAbilityFlag.ALLOW_FLYING, 0.05, 0.1)
       // TODO: Send this to all players
       client.send.addPlayerInfo([{
         uuid,

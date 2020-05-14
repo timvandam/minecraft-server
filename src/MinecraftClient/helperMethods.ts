@@ -13,6 +13,8 @@ import { EBossBarDivision } from '../enums/EBossBarDivision'
 import { EBossBarFlag } from '../enums/EBossBarFlag'
 import { loadChunk } from '../WorldLoader'
 import { longarray } from 'eznbt/lib/DataTypes/LongArray'
+import { EBiome } from '../enums/EBiome'
+import { Int } from '../DataTypes/Int'
 
 interface Player {
   UUID: string;
@@ -71,8 +73,8 @@ export async function chunkData (this: MinecraftClient, x: number, z: number): P
     [Symbol.for('NBTRootTagName')]: 'Heightmaps'
   }
 
-  // No full chunk/biomes for now
-  const biomes = Buffer.from('00000001'.repeat(1024), 'hex')
+  // No actual biomes are stored right now
+  const biomes = Buffer.concat(Array(1024).fill(EBiome.HELL).map(value => new Int({ value }).buffer))
 
   const sections = chunk.sections.map(({ blockCount, bitsPerBlock, palette, data }) => ([blockCount, bitsPerBlock, palette, data]))
   const blockEntities: any[] = [] // compound tags

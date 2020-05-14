@@ -16,6 +16,7 @@ import { ESocketState } from './enums/ESocketState'
 
 export const server = new Server()
 
+// TODO: Entity storage
 server.on('connection', (socket: Socket) => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const client = new MinecraftClient(socket)

@@ -70,7 +70,24 @@ export default function world (user: EventEmitter, client: MinecraftClient) {
       const [block] = await getBlocks([[x, y, z]])
       console.log('broke block', block)
       client.send.acknowledgePlayerDigging([x, y, z], block, status, true)
+      // Break the block
       client.send.blockChange([x, y, z], 0)
+      // Drop the block
+      // TODO: Map all blocks to their IDs because they might change later
+      client.send.spawnEntity(
+        Math.floor(Math.random() * 50),
+        Buffer.allocUnsafe(16).toString('hex'),
+        35, // item
+        x,
+        y,
+        z,
+        0,
+        0,
+        2,
+        0,
+        0,
+        0
+      )
       // TODO: Drop block and update chunk
     }
   })

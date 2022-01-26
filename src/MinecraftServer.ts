@@ -1,5 +1,9 @@
 import { EventBus } from 'decorator-events';
+import { Duplex } from 'stream';
 import net from 'net';
+import { Deserializer } from './packets/io/Deserializer';
+import { MinecraftClient } from './MinecraftClient';
+import { packetListeners } from './listeners/packets';
 
 export type MinecraftServerOptions = {
   port: number;
@@ -13,13 +17,20 @@ export const defaultMinecraftServerOptions: MinecraftServerOptions = {
 
 export class MinecraftServer {
   public readonly options: MinecraftServerOptions;
-  // TODO: Create default listeners with monitor handlers
+  // TODO: Client list?
   protected readonly server = new net.Server();
+  // TODO: Create default listeners with monitor handlers
   protected readonly eventBus = new EventBus();
+  protected readonly packetBus = new EventBus();
 
   constructor(options: Partial<MinecraftServerOptions> = {}) {
     this.options = { ...defaultMinecraftServerOptions, ...options };
     this.eventBus.register(this.options.listeners);
+    this.packetBus.register(...packetListeners);
+
+    this.server.on('connection', async (socket) => {
+      const client = new MinecraftClient(socket, this.packetBus);
+    });
   }
 
   start(): Promise<void> {

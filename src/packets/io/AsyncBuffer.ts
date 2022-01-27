@@ -1,78 +1,50 @@
-import { EventEmitter, on } from 'events';
+import { once } from 'events';
+import { Readable } from 'stream';
 
 export class AsyncBuffer {
-  protected length = 0;
-  protected chunks: Buffer[] = [];
-  protected lengthEmitters: EventEmitter[] = [];
+  constructor(protected readonly readable: Readable) {}
 
-  protected static async pipe(asyncIterable: AsyncIterable<Buffer>, asyncBuffer: AsyncBuffer) {
-    for await (const buffer of asyncIterable) {
-      asyncBuffer.expand(buffer);
-    }
-  }
+  async consume(count: number): Promise<Buffer> {
+    while (true) {
+      const buf = this.readable.read(count);
 
-  static fromAsyncIterable(asyncIterable: AsyncIterable<Buffer>) {
-    const asyncBuffer = new AsyncBuffer();
-    AsyncBuffer.pipe(asyncIterable, asyncBuffer);
-    return asyncBuffer;
-  }
-
-  protected emitLength() {
-    this.lengthEmitters[0]?.emit('length', this.length);
-  }
-
-  expand(buffer: Buffer) {
-    this.chunks.push(buffer);
-    this.length += buffer.length;
-    this.emitLength();
-  }
-
-  async consume(byteCount: number): Promise<Buffer> {
-    const lengthEmitter = new EventEmitter();
-    this.lengthEmitters.push(lengthEmitter);
-
-    if (byteCount === 0) {
-      return Buffer.alloc(0);
-    }
-
-    if (this.lengthEmitters.length > 1 || this.length < byteCount) {
-      // Wait for enough bytes to be present (and for our turn)
-      for await (const length of on(lengthEmitter, 'length')) {
-        if (length >= byteCount) break;
+      if (buf !== null) {
+        return buf;
       }
+
+      await once(this.readable, 'readable');
     }
+  }
 
-    // Check which chunks we need to get the requested amount of bytes
-    let remainingByteCount = byteCount;
-    let lastBufferIndex = 0;
-    for (let i = 0; i < this.chunks.length; i++) {
-      remainingByteCount -= this.chunks[i].length;
-      lastBufferIndex = i;
-      if (remainingByteCount <= 0) break;
-    }
+  async readInt8() {
+    return (await this.consume(1)).readInt8();
+  }
 
-    if (remainingByteCount > 0) {
-      throw new Error('Not enough bytes available. This should be impossible!');
-    }
+  async readUInt8() {
+    return (await this.consume(1)).readUInt8();
+  }
 
-    // Get all the required chunks
-    const buffers = this.chunks.splice(0, lastBufferIndex + 1);
+  async readInt16BE() {
+    return (await this.consume(2)).readInt16BE();
+  }
 
-    // We took too many bytes. Split the last buffer
-    if (remainingByteCount < 0) {
-      const bytesTooMany = -remainingByteCount;
-      const lastChunk = buffers[buffers.length - 1];
-      const overshotBytes = lastChunk.slice(lastChunk.length - bytesTooMany);
-      buffers[buffers.length - 1] = lastChunk.slice(0, lastChunk.length - bytesTooMany);
-      this.chunks.unshift(overshotBytes);
-    }
+  async readUInt16BE() {
+    return (await this.consume(2)).readUInt16BE();
+  }
 
-    const buffer = Buffer.concat(buffers);
+  async readInt32BE() {
+    return (await this.consume(4)).readInt32BE();
+  }
 
-    this.length -= buffer.length;
-    this.lengthEmitters.shift();
-    this.emitLength();
+  async readUInt32BE() {
+    return (await this.consume(4)).readUInt32BE();
+  }
 
-    return buffer;
+  async readBigInt64BE() {
+    return (await this.consume(8)).readBigInt64BE();
+  }
+
+  async readBigUInt64BE() {
+    return (await this.consume(8)).readBigUInt64BE();
   }
 }

@@ -27,7 +27,7 @@ export function registerPacket(packetClass: RegisterPacketClass): void {
 
   if (registry[packetId]?.[packetDirection]?.[packetState]) {
     throw new Error(
-      `A packet with packetId-packetState-packetDirection ${packetId}-${ClientState[packetState]}-${PacketDirection[packetDirection]} has already been registered! (Attempted to register Packet class with name ${packetClass.name})`,
+      `Can't register packet '${packetClass.name}'. A packet named '${registry[packetId]?.[packetDirection]?.[packetState]?.name}' is already registered for its packetId, state and direction`,
     );
   }
 

@@ -19,7 +19,6 @@ export class Disconnect extends createPacket(
   }
 
   static toBuffer(packet: Disconnect): Buffer {
-    const str = typeof packet.reason === 'string' ? packet.reason : JSON.stringify(packet.reason);
-    return new BufferWriter().writeString(str).getBuffer();
+    return new BufferWriter().writeChat(packet.reason).getBuffer();
   }
 }

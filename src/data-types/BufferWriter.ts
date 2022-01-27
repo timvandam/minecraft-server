@@ -1,4 +1,6 @@
 // TODO: Write
+import { Chat } from './Chat';
+
 export class BufferWriter {
   protected buffers: Buffer[] = [];
   protected shouldPrepend = false;
@@ -125,15 +127,19 @@ export class BufferWriter {
   writeString(str: string) {
     // TODO: Specify max length
     const textBuf = Buffer.from(str, 'utf8');
-    this.prepend.writeVarInt(textBuf.length);
-    this.writeBlob(textBuf);
+    const stringBuf = new BufferWriter().writeVarInt(textBuf.length).writeBlob(textBuf).getBuffer();
+    this.writeBlob(stringBuf);
     return this;
   }
 
-  // writeChat() {
-  //   return this.readString();
-  // }
-  //
+  writeChat(chat: string | Chat) {
+    if (typeof chat === 'string') {
+      return this.writeString(chat);
+    } else {
+      return this.writeString(JSON.stringify(chat));
+    }
+  }
+
   // writeIdentifier() {
   //   return this.readString();
   // }
@@ -163,14 +169,11 @@ export class BufferWriter {
   //   return num;
   // }
 
-  writeUuid(uuid: bigint) {
-    const leftBuf = Buffer.allocUnsafe(8);
-    const rightBuf = Buffer.allocUnsafe(8);
-    leftBuf.writeBigInt64BE(uuid >> 64n);
-    rightBuf.writeBigInt64BE(uuid & ((1n << 64n) - 1n));
-    this.write(leftBuf);
-    this.write(rightBuf);
-    return this;
+  writeUuid(uuid: Buffer) {
+    if (uuid.length !== 16) {
+      throw new Error('UUID must have length of 16 bytes');
+    }
+    return this.writeBlob(uuid);
   }
 
   writeBlob(buf: Buffer) {

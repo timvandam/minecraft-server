@@ -5,11 +5,11 @@ import { createPacket } from '../createPacket';
 import { BufferWriter } from '../../../data-types/BufferWriter';
 
 export class LoginSuccess extends createPacket(
-  0x04,
+  0x02,
   PacketDirection.CLIENT_BOUND,
   ClientState.LOGIN,
 ) {
-  constructor(public readonly uuid: bigint, public readonly user: string) {
+  constructor(public readonly uuid: Buffer, public readonly user: string) {
     super();
   }
 

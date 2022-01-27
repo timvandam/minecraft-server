@@ -117,9 +117,7 @@ export class BufferReader {
   }
 
   readUuid() {
-    const num = (this.buffer.readBigInt64BE() << 64n) | this.buffer.readBigInt64BE(8);
-    this.buffer = this.buffer.slice(16);
-    return num;
+    return this.readBlob(16);
   }
 
   readBlob(length: number) {

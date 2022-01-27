@@ -6,11 +6,11 @@ export type Chat = {
   strikethrough?: boolean;
   obfuscated?: boolean;
   font?: 'minecraft:uniform' | 'minecraft:alt' | 'minecraft:default';
-  color?: ChatColor;
+  color?: ChatColor | string;
   extra?: Chat[];
 };
 
-enum ChatColor {
+export enum ChatColor {
   BLACK = 'black',
   DARK_BLUE = 'dark_blue',
   DARK_GREEN = 'dark_green',
@@ -54,9 +54,8 @@ interface ChatTag {
   obfuscated: ChatTag;
 }
 
-const createChatTag = (base: Omit<Chat, 'extra'> = {}) => {
-  // @ts-expect-error Typescript isnt smart enough
-  const chatTag: ChatTag = (strings: TemplateStringsArray, ...rest: (Chat | string)[]): Chat => {
+const createChatTag = (base: Omit<Chat, 'extra'> = {}): ChatTag => {
+  const chatTag = (strings: TemplateStringsArray, ...rest: (Chat | string)[]): Chat => {
     const chats: Chat[] = strings.map((text) => ({ ...base, text }));
     for (let i = rest.length - 1; i >= 0; i--) {
       const el = rest[i];
@@ -94,7 +93,7 @@ const createChatTag = (base: Omit<Chat, 'extra'> = {}) => {
     obfuscated: { get: () => createChatTag({ ...base, obfuscated: true }) },
   });
 
-  return chatTag;
+  return chatTag as ChatTag;
 };
 
 export const chat = createChatTag();

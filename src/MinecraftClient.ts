@@ -26,8 +26,7 @@ export class MinecraftClient {
     }
   });
 
-  constructor(public readonly socket: net.Socket, protected readonly packetBus: EventBus) {
-    // pipeline(this.serializer, this.socket, this.deserializer, this.packetEmitter).resume();
+  constructor(protected readonly socket: net.Socket, protected readonly packetBus: EventBus) {
     this.serializer.pipe(this.socket).pipe(this.deserializer).pipe(this.packetEmitter).resume();
   }
 

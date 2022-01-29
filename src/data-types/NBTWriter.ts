@@ -14,9 +14,9 @@ enum NBTType {
   LONG_ARRAY = 12,
 }
 
-const nbtValue = Symbol('nbtValue');
-type NBTValue<O extends NBTType = NBTType, I extends NBTType = NBTType> = {
-  [nbtValue]: typeof nbtValue;
+const NBT_VALUE = Symbol('NBT_VALUE');
+type NBTValue<O extends NBTType = NBTType, I = unknown> = {
+  [NBT_VALUE]: typeof NBT_VALUE;
   type: O;
 } & (
   | {
@@ -53,7 +53,7 @@ type NBTValue<O extends NBTType = NBTType, I extends NBTType = NBTType> = {
     }
   | {
       type: NBTType.LIST;
-      value: (NBTValue<I> | InferrableNBTValue)[];
+      value: (I & (NBTValue | InferrableNBTValue))[];
     }
   | {
       type: NBTType.COMPOUND;
@@ -70,12 +70,20 @@ type NBTValue<O extends NBTType = NBTType, I extends NBTType = NBTType> = {
 );
 
 type InferrableNBTValue<T extends NBTType = NBTType> =
-  | (NBTValue<T> | InferrableNBTValue<T>)[] // List
+  // | (NBTValue<T> | (InferrableNBTValue & NBTValue<T>['value']))[] // List TODO: Fix this type to include just one infered
   | string // String
   | bigint // Long
   | { [K: string]: NBTValue | InferrableNBTValue }; // Compound
 
-export type NBT = {
+type WrapInList<T> = {
+  [K in keyof T & string]: T[K] extends (arg: infer T) => NBTValue<infer R, infer I>
+    ? (...args: T[]) => NBTValue<NBTType.LIST, NBTValue<R, I>>
+    : K extends 'list'
+    ? WrapInList<WrapInList<T>>
+    : T[K];
+};
+
+type NBT = {
   (name: string, value: NBTValue | InferrableNBTValue): Buffer;
   compound(compound: NBTValue<NBTType.COMPOUND>['value']): NBTValue<NBTType.COMPOUND>;
   string(str: NBTValue<NBTType.STRING>['value']): NBTValue<NBTType.STRING>;
@@ -88,12 +96,12 @@ export type NBT = {
   byteArray(nums: NBTValue<NBTType.BYTE_ARRAY>['value']): NBTValue<NBTType.BYTE_ARRAY>;
   intArray(nums: NBTValue<NBTType.INT_ARRAY>['value']): NBTValue<NBTType.INT_ARRAY>;
   longArray(nums: NBTValue<NBTType.LONG_ARRAY>['value']): NBTValue<NBTType.LONG_ARRAY>;
-  // TODO: Make sure this type allows just one kind of value (rn the generic can become a union)
-  list<T extends NBTType>(items: NBTValue<NBTType.LIST, T>['value']): NBTValue<NBTType.LIST, T>;
+
+  list: WrapInList<NBT>;
 };
 
 function isNBTValue(value: unknown): value is NBTValue {
-  return typeof value === 'object' && value !== null && nbtValue in value;
+  return typeof value === 'object' && value !== null && NBT_VALUE in value;
 }
 
 type NormalizedNBTValue<O extends NBTType = NBTType, I extends NBTType = NBTType> = { type: O } & (
@@ -144,7 +152,7 @@ function normalize(value: NBTValue | InferrableNBTValue): NormalizedNBTValue {
 
     case 'object': {
       if (Array.isArray(value)) {
-        return normalize(list(value));
+        return normalize({ type: NBTType.LIST, value, [NBT_VALUE]: NBT_VALUE });
       } else {
         return normalize(compound(value));
       }
@@ -228,11 +236,13 @@ function serialize(value: NormalizedNBTValue): Buffer {
       const itemsBuf = value.value.map((el) => serialize(el));
       const itemCountBuf = Buffer.allocUnsafe(4);
       itemCountBuf.writeInt32BE(itemsBuf.length);
-      return Buffer.concat([Buffer.of(value.value[0].type), itemCountBuf, ...itemsBuf]);
+      const type = value.value?.[0]?.type ?? NBTType.END;
+      return Buffer.concat([Buffer.of(type), itemCountBuf, ...itemsBuf]);
     }
 
     case NBTType.COMPOUND: {
       const itemsBuf = Object.entries(value.value).map(([key, val]) => {
+        // TODO: Use namedNbt
         const nameBuf = Buffer.from(key, 'utf8');
         const nameLenBuf = Buffer.allocUnsafe(2);
         nameLenBuf.writeUInt16BE(nameBuf.length);
@@ -252,7 +262,7 @@ function serialize(value: NormalizedNBTValue): Buffer {
   }
 }
 
-export const nbt: NBT = function serializeNbt(name: string, value: NBTValue | InferrableNBTValue) {
+const namedNbt = (name: string, value: NBTValue | InferrableNBTValue) => {
   // Create a root element with some name
   const normalizedValue = normalize(value);
   const buf = serialize(normalizedValue);
@@ -265,59 +275,62 @@ export const nbt: NBT = function serializeNbt(name: string, value: NBTValue | In
   return Buffer.concat([Buffer.of(normalizedValue.type), nameLenBuf, nameBuf, buf]);
 };
 
+export const nbt: NBT = (name: string, value: NBTValue | InferrableNBTValue) =>
+  namedNbt(name, value);
+
 export const compound = (
   value: NBTValue<NBTType.COMPOUND>['value'],
 ): NBTValue<NBTType.COMPOUND> => ({
-  [nbtValue]: nbtValue,
+  [NBT_VALUE]: NBT_VALUE,
   type: NBTType.COMPOUND,
   value,
 });
 nbt.compound = compound;
 
 export const string = (value: NBTValue<NBTType.STRING>['value']): NBTValue<NBTType.STRING> => ({
-  [nbtValue]: nbtValue,
+  [NBT_VALUE]: NBT_VALUE,
   type: NBTType.STRING,
   value,
 });
 nbt.string = string;
 
 export const byte = (value: NBTValue<NBTType.BYTE>['value']): NBTValue<NBTType.BYTE> => ({
-  [nbtValue]: nbtValue,
+  [NBT_VALUE]: NBT_VALUE,
   type: NBTType.BYTE,
   value,
 });
 nbt.byte = byte;
 
 export const short = (value: NBTValue<NBTType.SHORT>['value']): NBTValue<NBTType.SHORT> => ({
-  [nbtValue]: nbtValue,
+  [NBT_VALUE]: NBT_VALUE,
   type: NBTType.SHORT,
   value,
 });
 nbt.short = short;
 
 export const int = (value: NBTValue<NBTType.INT>['value']): NBTValue<NBTType.INT> => ({
-  [nbtValue]: nbtValue,
+  [NBT_VALUE]: NBT_VALUE,
   type: NBTType.INT,
   value,
 });
 nbt.int = int;
 
 export const long = (value: NBTValue<NBTType.LONG>['value']): NBTValue<NBTType.LONG> => ({
-  [nbtValue]: nbtValue,
+  [NBT_VALUE]: NBT_VALUE,
   type: NBTType.LONG,
   value,
 });
 nbt.long = long;
 
 export const float = (value: NBTValue<NBTType.FLOAT>['value']): NBTValue<NBTType.FLOAT> => ({
-  [nbtValue]: nbtValue,
+  [NBT_VALUE]: NBT_VALUE,
   type: NBTType.FLOAT,
   value,
 });
 nbt.float = float;
 
 export const double = (value: NBTValue<NBTType.DOUBLE>['value']): NBTValue<NBTType.DOUBLE> => ({
-  [nbtValue]: nbtValue,
+  [NBT_VALUE]: NBT_VALUE,
   type: NBTType.DOUBLE,
   value,
 });
@@ -326,7 +339,7 @@ nbt.double = double;
 export const byteArray = (
   value: NBTValue<NBTType.BYTE_ARRAY>['value'],
 ): NBTValue<NBTType.BYTE_ARRAY> => ({
-  [nbtValue]: nbtValue,
+  [NBT_VALUE]: NBT_VALUE,
   type: NBTType.BYTE_ARRAY,
   value,
 });
@@ -335,7 +348,7 @@ nbt.byteArray = byteArray;
 export const intArray = (
   value: NBTValue<NBTType.INT_ARRAY>['value'],
 ): NBTValue<NBTType.INT_ARRAY> => ({
-  [nbtValue]: nbtValue,
+  [NBT_VALUE]: NBT_VALUE,
   type: NBTType.INT_ARRAY,
   value,
 });
@@ -344,16 +357,43 @@ nbt.intArray = intArray;
 export const longArray = (
   value: NBTValue<NBTType.LONG_ARRAY>['value'],
 ): NBTValue<NBTType.LONG_ARRAY> => ({
-  [nbtValue]: nbtValue,
+  [NBT_VALUE]: NBT_VALUE,
   type: NBTType.LONG_ARRAY,
   value,
 });
 nbt.longArray = longArray;
 
-export const list = <T extends NBTType>(
-  value: NBTValue<NBTType.LIST, T>['value'],
-): NBTValue<NBTType.LIST, T> => ({ [nbtValue]: nbtValue, type: NBTType.LIST, value });
+export const list = createListProp(nbt);
 nbt.list = list;
 
-// TODO
-nbt.list([int(1), double(2), long(3n)]);
+function isKeyOf<T>(obj: T, key: unknown): key is keyof T {
+  return typeof key === 'string' && key in obj;
+}
+
+function createListProp<T>(nbt: T): WrapInList<T> {
+  return new Proxy<WrapInList<T>>(nbt as WrapInList<T>, {
+    get(nbt, prop: string, receiver) {
+      if (prop === 'list') {
+        return createListProp(receiver);
+      }
+
+      if (isKeyOf(nbt, prop)) {
+        const fn = nbt[prop];
+
+        if (typeof fn !== 'function') {
+          return fn;
+        }
+
+        return (...args: unknown[]) => {
+          return {
+            [NBT_VALUE]: NBT_VALUE,
+            type: NBTType.LIST,
+            value: args.map((arg) => fn(arg)),
+          };
+        };
+      }
+
+      return undefined;
+    },
+  });
+}

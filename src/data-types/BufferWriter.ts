@@ -1,15 +1,16 @@
-// TODO: Write
 import { Chat } from './Chat';
 
 export class BufferWriter {
   protected buffers: Buffer[] = [];
   protected shouldPrepend = false;
-  public length = 0;
+
+  get length() {
+    return this.buffers.reduce((total, buf) => total + buf.length, 0);
+  }
 
   protected clone() {
     const copy = new BufferWriter();
     copy.buffers = this.buffers;
-    copy.length = this.length;
     return copy;
   }
 
@@ -31,7 +32,6 @@ export class BufferWriter {
     } else {
       this.buffers.push(buf);
     }
-    this.length += buf.length;
   }
 
   getBuffer() {
@@ -41,7 +41,6 @@ export class BufferWriter {
   clear() {
     // Setting length to 0 makes sure the underlying reference stays the same. Important in cases where you both prepend and append to the buffer (ie when there are multiple BufferWriters writing the same buffer)
     this.buffers.length = 0;
-    this.length = 0;
     return this;
   }
 

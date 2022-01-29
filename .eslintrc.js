@@ -14,5 +14,6 @@ module.exports = {
   },
   rules: {
     'prettier/prettier': ['error', {}, { usePrettierrc: true }],
+    '@typescript-eslint/no-empty-function': ['error', { allow: ['protected-constructors'] }],
   },
 };

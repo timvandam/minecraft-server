@@ -1,0 +1,49 @@
+import { nbt } from '../NBTWriter';
+
+describe('https://wiki.vg/NBT#Examples', () => {
+  it('TAG_Short', () => {
+    expect(nbt('shortTest', nbt.short(32767))).toEqual(
+      Buffer.of(0x02, 0x00, 0x09, 0x73, 0x68, 0x6f, 0x72, 0x74, 0x54, 0x65, 0x73, 0x74, 0x7f, 0xff),
+    );
+  });
+
+  it('test.nbt', () => {
+    expect(nbt('hello world', { name: 'Bananrama' })).toEqual(
+      Buffer.of(
+        0x0a,
+        0x00,
+        0x0b,
+        0x68,
+        0x65,
+        0x6c,
+        0x6c,
+        0x6f,
+        0x20,
+        0x77,
+        0x6f,
+        0x72,
+        0x6c,
+        0x64,
+        0x08,
+        0x00,
+        0x04,
+        0x6e,
+        0x61,
+        0x6d,
+        0x65,
+        0x00,
+        0x09,
+        0x42,
+        0x61,
+        0x6e,
+        0x61,
+        0x6e,
+        0x72,
+        0x61,
+        0x6d,
+        0x61,
+        0x00,
+      ),
+    );
+  });
+});

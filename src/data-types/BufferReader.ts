@@ -1,3 +1,6 @@
+import { NBTReader } from './nbt';
+import { deserializeNbt } from './nbt/NBTDeserialize';
+
 export class BufferReader {
   constructor(public buffer: Buffer) {}
 
@@ -100,10 +103,10 @@ export class BufferReader {
   }
 
   readPosition() {
-    const num = this.buffer.readBigInt64BE();
-    const x = num >> (12n + 26n);
-    const y = num & 0xfffn;
-    const z = (num >> 12n) & ((1n << 26n) - 1n);
+    const num = this.buffer.readBigUInt64BE();
+    const x = Number(num >> (12n + 26n));
+    const z = Number((num >> 12n) & ((1n << 26n) - 1n));
+    const y = Number(num & 0xfffn);
 
     this.buffer = this.buffer.slice(8);
 
@@ -129,5 +132,9 @@ export class BufferReader {
   readVarIntLenByteArray() {
     const length = this.readVarInt();
     return this.readBlob(length);
+  }
+
+  readNbt(): NBTReader {
+    return new NBTReader(deserializeNbt(this));
   }
 }

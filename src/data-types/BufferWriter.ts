@@ -1,37 +1,15 @@
 import { Chat } from './Chat';
+import { NBTValue } from './nbt/NBTValue';
+import { nbt, serializeNbt } from './nbt/NBTSerialize';
+import { NBTType } from './nbt/NBTType';
 
 export class BufferWriter {
   protected buffers: Buffer[] = [];
-  protected shouldPrepend = false;
-
-  get length() {
-    return this.buffers.reduce((total, buf) => total + buf.length, 0);
-  }
-
-  protected clone() {
-    const copy = new BufferWriter();
-    copy.buffers = this.buffers;
-    return copy;
-  }
-
-  get prepend() {
-    const copy = this.clone();
-    copy.shouldPrepend = true;
-    return copy;
-  }
-
-  get append() {
-    const copy = this.clone();
-    copy.shouldPrepend = false;
-    return copy;
-  }
+  protected length = 0;
 
   protected write(buf: Buffer) {
-    if (this.shouldPrepend) {
-      this.buffers.unshift(buf);
-    } else {
-      this.buffers.push(buf);
-    }
+    this.buffers.push(buf);
+    this.length += buf.length;
   }
 
   getBuffer() {
@@ -39,9 +17,90 @@ export class BufferWriter {
   }
 
   clear() {
-    // Setting length to 0 makes sure the underlying reference stays the same. Important in cases where you both prepend and append to the buffer (ie when there are multiple BufferWriters writing the same buffer)
-    this.buffers.length = 0;
+    this.buffers = [];
+    this.length = 0;
     return this;
+  }
+
+  writeBoolean(bool: boolean) {
+    this.writeByte(bool ? 1 : 0);
+    return this;
+  }
+
+  writeByte(num: number) {
+    const buf = Buffer.allocUnsafe(1);
+    buf.writeInt8(num);
+    this.write(buf);
+    return this;
+  }
+
+  writeUByte(num: number) {
+    const buf = Buffer.allocUnsafe(1);
+    buf.writeUInt8(num);
+    this.write(buf);
+    return this;
+  }
+
+  writeShort(num: number) {
+    const buf = Buffer.allocUnsafe(2);
+    buf.writeInt16BE(num);
+    this.write(buf);
+    return this;
+  }
+
+  writeUShort(num: number) {
+    const buf = Buffer.allocUnsafe(2);
+    buf.writeUInt16BE(num);
+    this.write(buf);
+    return this;
+  }
+
+  writeInt(num: number) {
+    const buf = Buffer.allocUnsafe(4);
+    buf.writeInt32BE(num);
+    this.write(buf);
+    return this;
+  }
+
+  writeLong(num: bigint) {
+    const buf = Buffer.allocUnsafe(8);
+    buf.writeBigInt64BE(num);
+    this.write(buf);
+    return this;
+  }
+
+  writeFloat(num: number) {
+    const buf = Buffer.allocUnsafe(4);
+    buf.writeFloatBE(num);
+    this.write(buf);
+    return this;
+  }
+
+  writeDouble(num: number) {
+    const buf = Buffer.allocUnsafe(8);
+    buf.writeDoubleBE(num);
+    this.write(buf);
+    return this;
+  }
+
+  writeString(str: string) {
+    // TODO: Specify max length
+    const textBuf = Buffer.from(str, 'utf8');
+    const stringBuf = new BufferWriter().writeVarInt(textBuf.length).writeBlob(textBuf).getBuffer();
+    this.writeBlob(stringBuf);
+    return this;
+  }
+
+  writeChat(chat: string | Chat) {
+    if (typeof chat === 'string') {
+      return this.writeString(chat);
+    } else {
+      return this.writeString(JSON.stringify(chat));
+    }
+  }
+
+  writeIdentifier(identifier: string) {
+    return this.writeString(identifier);
   }
 
   protected writeVarNum(maxByteCount: number, num: number) {
@@ -68,105 +127,26 @@ export class BufferWriter {
     return this.writeVarNum(5, num);
   }
 
-  // writeBoolean() {
-  //   const bool = this.buffer.readInt8() === 1;
-  //   this.buffer = this.buffer.slice(1);
-  //   return bool;
-  // }
-  //
-  // writeByte() {
-  //   const num = this.buffer.readInt8();
-  //   this.buffer = this.buffer.slice(1);
-  //   return num;
-  // }
-  //
-  // writeUByte() {
-  //   const num = this.buffer.readUInt8();
-  //   this.buffer = this.buffer.slice(1);
-  //   return num;
-  // }
-  //
-  // writeShort() {
-  //   const num = this.buffer.readInt16BE();
-  //   this.buffer = this.buffer.slice(2);
-  //   return num;
-  // }
-  //
-  // writeUShort() {
-  //   const num = this.buffer.readUInt16BE();
-  //   this.buffer = this.buffer.slice(2);
-  //   return num;
-  // }
-  //
-  // writeInt() {
-  //   const num = this.buffer.readInt32BE();
-  //   this.buffer = this.buffer.slice(4);
-  //   return num;
-  // }
+  writeVarLong(num: number) {
+    return this.writeVarNum(10, num);
+  }
 
-  writeLong(num: bigint) {
+  writePosition(x: number, y: number, z: number) {
     const buf = Buffer.allocUnsafe(8);
-    buf.writeBigInt64BE(num);
-    this.write(buf);
-    return this;
+    buf.writeBigUInt64BE(
+      ((BigInt(x) & ((1n << 26n) - 1n)) << (26n + 12n)) |
+        ((BigInt(z) & ((1n << 26n) - 1n)) << 12n) |
+        (BigInt(y) & 0xfffn),
+    );
+    return this.writeBlob(buf);
   }
 
-  // writeFloat() {
-  //   const num = this.buffer.readFloatBE();
-  //   this.buffer = this.buffer.slice(4);
-  //   return num;
-  // }
-  //
-  // writeDouble() {
-  //   const num = this.buffer.readDoubleBE();
-  //   this.buffer = this.buffer.slice(8);
-  //   return num;
-  // }
-
-  writeString(str: string) {
-    // TODO: Specify max length
-    const textBuf = Buffer.from(str, 'utf8');
-    const stringBuf = new BufferWriter().writeVarInt(textBuf.length).writeBlob(textBuf).getBuffer();
-    this.writeBlob(stringBuf);
-    return this;
+  /**
+   * Writes an angle as an unsigned byte (0-255)
+   */
+  writeAngle(num: number) {
+    return this.writeUByte(num);
   }
-
-  writeChat(chat: string | Chat) {
-    if (typeof chat === 'string') {
-      return this.writeString(chat);
-    } else {
-      return this.writeString(JSON.stringify(chat));
-    }
-  }
-
-  // writeIdentifier() {
-  //   return this.readString();
-  // }
-  //
-  // writeVarInt() {
-  //   return this.readVarNum(5);
-  // }
-  //
-  // writeVarLong() {
-  //   return this.readVarNum(10);
-  // }
-  //
-  // writePosition() {
-  //   const num = this.buffer.readBigInt64BE();
-  //   const x = num >> (12n + 26n);
-  //   const y = num & 0xfffn;
-  //   const z = (num >> 12n) & ((1n << 26n) - 1n);
-  //
-  //   this.buffer = this.buffer.slice(8);
-  //
-  //   return { x, y, z };
-  // }
-  //
-  // writeAngle() {
-  //   const num = this.buffer.readUInt8();
-  //   this.buffer = this.buffer.slice(1);
-  //   return num;
-  // }
 
   writeUuid(uuid: Buffer) {
     if (uuid.length !== 16) {
@@ -182,6 +162,14 @@ export class BufferWriter {
 
   writeVarIntLenByteArray(buf: Buffer) {
     this.write(new BufferWriter().writeVarInt(buf.length).writeBlob(buf).getBuffer());
+    return this;
+  }
+
+  /**
+   * Writes NBT. The input should always be a compound, this is the implicit compound that every NBT file is wrapper in.
+   */
+  writeNbt(...args: Parameters<typeof nbt>) {
+    serializeNbt(this, nbt(...args));
     return this;
   }
 }

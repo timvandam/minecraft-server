@@ -49,8 +49,10 @@ export async function* Serializer(
       continue;
     }
 
-    writer.prepend.writeVarInt(writer.length);
-
-    yield writer.getBuffer();
+    const buf = new BufferWriter()
+      .writeVarInt(writer.length)
+      .writeBlob(writer.getBuffer())
+      .getBuffer();
+    yield buf;
   }
 }

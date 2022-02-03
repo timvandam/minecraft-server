@@ -1,11 +1,9 @@
 import { Chat } from './Chat';
-import { NBTValue } from './nbt/NBTValue';
 import { nbt, serializeNbt } from './nbt/NBTSerialize';
-import { NBTType } from './nbt/NBTType';
 
 export class BufferWriter {
   protected buffers: Buffer[] = [];
-  protected length = 0;
+  public length = 0;
 
   protected write(buf: Buffer) {
     this.buffers.push(buf);
@@ -86,9 +84,7 @@ export class BufferWriter {
   writeString(str: string) {
     // TODO: Specify max length
     const textBuf = Buffer.from(str, 'utf8');
-    const stringBuf = new BufferWriter().writeVarInt(textBuf.length).writeBlob(textBuf).getBuffer();
-    this.writeBlob(stringBuf);
-    return this;
+    return this.writeVarInt(textBuf.length).writeBlob(textBuf);
   }
 
   writeChat(chat: string | Chat) {
@@ -161,13 +157,9 @@ export class BufferWriter {
   }
 
   writeVarIntLenByteArray(buf: Buffer) {
-    this.write(new BufferWriter().writeVarInt(buf.length).writeBlob(buf).getBuffer());
-    return this;
+    return this.writeVarInt(buf.length).writeBlob(buf);
   }
 
-  /**
-   * Writes NBT. The input should always be a compound, this is the implicit compound that every NBT file is wrapper in.
-   */
   writeNbt(...args: Parameters<typeof nbt>) {
     serializeNbt(this, nbt(...args));
     return this;

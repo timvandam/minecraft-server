@@ -4,7 +4,7 @@ import { resolve } from 'path';
 
 export const name = 'bigtest';
 
-export const getActualNbtBuffer = () => readFile(resolve(__dirname, './bigtest.nbt'));
+export const getActualNbtBuffer = () => readFile(resolve(__dirname, './nbt/bigtest.nbt'));
 
 export const nbtValue = nbt('Level', {
   longTest: 9223372036854775807n,

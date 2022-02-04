@@ -4,7 +4,7 @@ import { resolve } from 'path';
 
 export const name = 'arrays';
 
-export const getActualNbtBuffer = () => readFile(resolve(__dirname, './arrays.nbt'));
+export const getActualNbtBuffer = () => readFile(resolve(__dirname, './nbt/arrays.nbt'));
 
 export const nbtValue = nbt('root', {
   byte: byteArray([1, 2, 3]),

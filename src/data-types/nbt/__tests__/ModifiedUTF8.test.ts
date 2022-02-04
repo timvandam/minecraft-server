@@ -1,17 +1,5 @@
 import { deserializeModifiedUtf8, serializeModifiedUtf8 } from '../ModifiedUTF8';
 
-describe('overlong encoding', () => {
-  it.todo(
-    'A' /*, *() => {
-    // code point 65 = 0b1000001
-    // Split over two UTF8 bytes: 1 000001
-    // Split over two UTF8 bytes with prefixes and 0-padded: 11000001 10000001
-    const buf = Buffer.from((0b110_00001_10_000001).toString(16), 'hex');
-    expect(() => deserializeModifiedUtf8(buf)).toThrow('Overlong encoding');
-  }*/,
-  );
-});
-
 describe('invalid encodings', () => {
   it.each<{ name: string; buf: Buffer }>([
     { name: '0b11111111', buf: Buffer.of(0b11111111) },
@@ -34,6 +22,10 @@ describe('invalid encodings', () => {
 });
 
 describe.each<{ category: string; strings: [string, Buffer][] }>([
+  {
+    category: 'emoji flags',
+    strings: [['🇳🇱', Buffer.from('eda0bcedb7b3eda0bcedb7b1', 'hex')]],
+  },
   {
     category: 'null',
     strings: [

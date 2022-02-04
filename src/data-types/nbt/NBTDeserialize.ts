@@ -1,4 +1,3 @@
-// TODO: Turn buffer into NBTValue. Then have a reader with a .get method that gets also does assertions
 import { nbtValue, NBTValue } from './NBTValue';
 import { BufferReader } from '../BufferReader';
 import { NBTType } from './NBTType';
@@ -16,6 +15,7 @@ import {
   short,
   string,
 } from './NBTSerialize';
+import { NBTCompound } from './NBTCompound';
 
 function isNBTType(num: number): num is NBTType {
   return Object.values(NBTType).includes(num);
@@ -27,6 +27,9 @@ function deserializeString(reader: BufferReader): NBTValue<NBTType.STRING> {
   const str = deserializeModifiedUtf8(stringBuf);
   return string(str);
 }
+
+function deserializeType(reader: BufferReader, type: NBTType.COMPOUND): NBTCompound;
+function deserializeType(reader: BufferReader, type: NBTType): NBTValue;
 
 function deserializeType(reader: BufferReader, type: NBTType): NBTValue {
   switch (type) {
@@ -130,10 +133,13 @@ function deserialize(reader: BufferReader, named = false): { name: string; nbtVa
   };
 }
 
-export const deserializeNbt = (reader: BufferReader): NBTValue =>
+export const deserializeNbt = (reader: BufferReader): NBTCompound => {
   // Make the implicit root compound explicit, then just deserialize
-  deserialize(
-    new BufferReader(
-      Buffer.concat([Buffer.of(NBTType.COMPOUND), reader.buffer, Buffer.of(NBTType.END)]),
-    ),
-  ).nbtValue;
+  const rootCompoundBuf = Buffer.concat([
+    Buffer.of(NBTType.COMPOUND),
+    reader.buffer,
+    Buffer.of(NBTType.END),
+  ]);
+
+  return deserialize(new BufferReader(rootCompoundBuf)).nbtValue as NBTCompound;
+};

@@ -1,5 +1,5 @@
-import { NBTReader } from './nbt';
 import { deserializeNbt } from './nbt/NBTDeserialize';
+import { NBTCompound } from './nbt';
 
 export class BufferReader {
   constructor(public buffer: Buffer) {}
@@ -134,7 +134,7 @@ export class BufferReader {
     return this.readBlob(length);
   }
 
-  readNbt(): NBTReader {
-    return new NBTReader(deserializeNbt(this));
+  readNbt(): NBTCompound {
+    return deserializeNbt(this);
   }
 }

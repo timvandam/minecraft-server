@@ -1,6 +1,7 @@
 import { NBTType } from './NBTType';
+import { NBTCompound } from './NBTCompound';
 
-const NBT_VALUE = Symbol('NBT_VALUE');
+export const NBT_VALUE = Symbol('NBT_VALUE');
 export type NBTValue<O extends NBTType = NBTType> = {
   [NBT_VALUE]: typeof NBT_VALUE;
   type: O;
@@ -45,10 +46,7 @@ export type NBTValue<O extends NBTType = NBTType> = {
       type: NBTType.LIST;
       value: NBTValue[];
     }
-  | {
-      type: NBTType.COMPOUND;
-      value: { [K: string]: NBTValue };
-    }
+  | NBTCompound
   | {
       type: NBTType.INT_ARRAY;
       value: number[];

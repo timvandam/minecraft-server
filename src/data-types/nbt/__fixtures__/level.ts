@@ -4,7 +4,7 @@ import { resolve } from 'path';
 
 export const name = 'level';
 
-export const getActualNbtBuffer = () => readFile(resolve(__dirname, './level.nbt'));
+export const getActualNbtBuffer = () => readFile(resolve(__dirname, './nbt/level.nbt'));
 
 export const nbtValue = nbt('', {
   Data: {

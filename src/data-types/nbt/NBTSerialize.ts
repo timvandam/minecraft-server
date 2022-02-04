@@ -2,6 +2,7 @@ import { NBTType } from './NBTType';
 import { isNBTValue, nbtValue, NBTValue } from './NBTValue';
 import { serializeModifiedUtf8 } from './ModifiedUTF8';
 import { BufferWriter } from '../BufferWriter';
+import { NBTCompound } from './NBTCompound';
 
 type InferrableNBTValue =
   | string // String
@@ -54,9 +55,7 @@ function infer(value: NBTValue | InferrableNBTValue): NBTValue {
       return long(value);
 
     case 'object':
-      // Compound is recursively inferred by default, so we can not wrap this with compound() as it would cause an infinite loop
-      return nbtValue(
-        NBTType.COMPOUND,
+      return new NBTCompound(
         Object.fromEntries(Object.entries(value).map(([k, v]) => [k, infer(v)])),
       );
   }

@@ -20,7 +20,7 @@ describe.each<NBTFixture>([...fixtures])('$name', ({ nbtValue, getActualNbtBuffe
 
   it('reading', async () => {
     const reader = new BufferReader(await getBuffer());
-    const nbt = await deserializeNbt(reader);
+    const nbt = deserializeNbt(reader);
     expect(nbt).toEqual(nbtValue);
   });
 

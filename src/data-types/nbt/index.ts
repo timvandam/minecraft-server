@@ -13,4 +13,4 @@ export {
   compound,
   list,
 } from './NBTSerialize';
-export { NBTReader } from './NBTReader';
+export { NBTCompound } from './NBTCompound';

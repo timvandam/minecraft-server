@@ -55,9 +55,6 @@ export async function* Deserializer(
       continue;
     }
 
-    const packet = packetClass.fromBuffer(packetData);
-    Object.defineProperty(packet, 'client', { value: client });
-
-    yield packet;
+    yield packetClass.fromBuffer(packetData);
   }
 }

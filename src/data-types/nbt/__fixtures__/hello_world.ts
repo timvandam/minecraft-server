@@ -1,9 +1,9 @@
 import { readFile } from 'fs/promises';
-import { nbt } from '../NBTSerialize';
 import { resolve } from 'path';
+import { compound } from '../NBTSerialize';
 
 export const name = 'hello_world';
 
 export const getActualNbtBuffer = () => readFile(resolve(__dirname, './nbt/hello_world.nbt'));
 
-export const nbtValue = nbt('hello world', { name: 'Bananrama' });
+export const nbtValue = compound({ 'hello world': { name: 'Bananrama' } });

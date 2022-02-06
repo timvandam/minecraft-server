@@ -4,7 +4,7 @@ import { serializeModifiedUtf8 } from './ModifiedUTF8';
 import { BufferWriter } from '../BufferWriter';
 import { NBTCompound } from './NBTCompound';
 
-type InferrableNBTValue =
+export type InferrableNBTValue =
   | string // String
   | bigint // Long
   | { [K: string]: NBTValue | InferrableNBTValue }; // Compound
@@ -18,7 +18,6 @@ type WrapInList<T> = {
 };
 
 type NBT = {
-  (name: string, value: NBTValue | InferrableNBTValue): NBTValue<NBTType.COMPOUND>;
   compound(compound: { [K: string]: NBTValue | InferrableNBTValue }): NBTValue<NBTType.COMPOUND>;
   string(str: string): NBTValue<NBTType.STRING>;
   byte(num: number): NBTValue<NBTType.BYTE>;
@@ -158,44 +157,35 @@ function serializeNbtWithoutType(writer: BufferWriter, value: NBTValue, root = f
 export const serializeNbt = (writer: BufferWriter, nbt: NBTValue<NBTType.COMPOUND>) =>
   serializeNbtWithoutType(writer, nbt, true);
 
-export const nbt: NBT = (name: string, value: NBTValue | InferrableNBTValue) =>
-  compound({ [name]: value });
+export const nbt: NBT = {
+  compound: (value) => infer(value),
+  string: (value) => nbtValue(NBTType.STRING, value),
+  byte: (value) => nbtValue(NBTType.BYTE, value),
+  short: (value) => nbtValue(NBTType.SHORT, value),
+  int: (value) => nbtValue(NBTType.INT, value),
+  long: (value) => nbtValue(NBTType.LONG, value),
+  float: (value) => nbtValue(NBTType.FLOAT, value),
+  double: (value) => nbtValue(NBTType.DOUBLE, value),
+  byteArray: (value) => nbtValue(NBTType.BYTE_ARRAY, value),
+  intArray: (value) => nbtValue(NBTType.INT_ARRAY, value),
+  longArray: (value) => nbtValue(NBTType.LONG_ARRAY, value),
+  get list() {
+    return createListProp(nbt);
+  },
+};
 
-nbt.compound = (value) => infer(value);
 export const compound = nbt.compound;
-
-nbt.string = (value) => nbtValue(NBTType.STRING, value);
 export const string = nbt.string;
-
-nbt.byte = (value) => nbtValue(NBTType.BYTE, value);
 export const byte = nbt.byte;
-
-nbt.short = (value) => nbtValue(NBTType.SHORT, value);
 export const short = nbt.short;
-
-nbt.int = (value) => nbtValue(NBTType.INT, value);
 export const int = nbt.int;
-
-nbt.long = (value) => nbtValue(NBTType.LONG, value);
 export const long = nbt.long;
-
-nbt.float = (value) => nbtValue(NBTType.FLOAT, value);
 export const float = nbt.float;
-
-nbt.double = (value) => nbtValue(NBTType.DOUBLE, value);
 export const double = nbt.double;
-
-nbt.byteArray = (value) => nbtValue(NBTType.BYTE_ARRAY, value);
 export const byteArray = nbt.byteArray;
-
-nbt.intArray = (value) => nbtValue(NBTType.INT_ARRAY, value);
 export const intArray = nbt.intArray;
-
-nbt.longArray = (value) => nbtValue(NBTType.LONG_ARRAY, value);
 export const longArray = nbt.longArray;
-
-export const list = createListProp(nbt);
-nbt.list = list;
+export const list = nbt.list;
 
 function isKeyOf<T>(obj: T, key: unknown): key is keyof T {
   return typeof key === 'string' && key in obj;

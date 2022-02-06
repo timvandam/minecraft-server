@@ -1,5 +1,7 @@
 import { Chat } from './Chat';
 import { nbt, serializeNbt } from './nbt/NBTSerialize';
+import { NBTCompound } from './nbt';
+import { NBTType } from './nbt/NBTType';
 
 export class BufferWriter {
   protected buffers: Buffer[] = [];
@@ -160,8 +162,8 @@ export class BufferWriter {
     return this.writeVarInt(buf.length).writeBlob(buf);
   }
 
-  writeNbt(...args: Parameters<typeof nbt>) {
-    serializeNbt(this, nbt(...args));
+  writeNbt(compound: NBTCompound) {
+    serializeNbt(this, compound);
     return this;
   }
 }

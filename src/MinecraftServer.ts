@@ -4,6 +4,7 @@ import net from 'net';
 import { Deserializer } from './packets/io/Deserializer';
 import { MinecraftClient } from './MinecraftClient';
 import { packetListeners } from './listeners/packets';
+import { MinecraftConfig } from './config/MinecraftConfig';
 
 export type MinecraftServerOptions = {
   port: number;
@@ -23,13 +24,16 @@ export class MinecraftServer {
   protected readonly eventBus = new EventBus();
   protected readonly packetBus = new EventBus();
 
-  constructor(options: Partial<MinecraftServerOptions> = {}) {
+  constructor(
+    options: Partial<MinecraftServerOptions> = {},
+    public readonly config: MinecraftConfig = new MinecraftConfig(),
+  ) {
     this.options = { ...defaultMinecraftServerOptions, ...options };
     this.eventBus.register(this.options.listeners);
     this.packetBus.register(...packetListeners);
 
     this.server.on('connection', async (socket) => {
-      const client = new MinecraftClient(socket, this.packetBus);
+      const client = new MinecraftClient(this, socket, this.packetBus);
     });
   }
 

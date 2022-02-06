@@ -5,7 +5,7 @@ import { Event } from 'decorator-events';
 
 export abstract class Packet extends Event {
   get client(): MinecraftClient {
-    throw new Error('Client is undefined. This should be set during packet deserialization');
+    throw new Error('Client can only be accessed on server-bound packets and inside of toBuffer');
   }
 }
 

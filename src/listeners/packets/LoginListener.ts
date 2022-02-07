@@ -6,6 +6,8 @@ import { ClientState } from '../../packets/ClientState';
 import { v3 as uuid } from 'uuid';
 import { Gamemode, JoinGame } from '../../packets/packets/client-bound/JoinGame';
 import { byte, compound, double, float, int, list } from '../../data-types/nbt';
+import { PlayerPositionAndLook } from '../../packets/packets/client-bound/PlayerPositionAndLook';
+import { Explosion } from '../../packets/packets/client-bound/Explosion';
 
 export class LoginListener {
   @EventHandler
@@ -25,16 +27,18 @@ export class LoginListener {
     await packet.client.write(new LoginSuccess(userUuid, packet.username));
     packet.client.state = ClientState.PLAY;
 
-    await packet.client.write(
+    packet.client.write(
       new JoinGame(
         227,
         false,
         Gamemode.CREATIVE,
         undefined,
-        ['minecraft:overworld'], // TODO: better types
+        packet.client.server.config.dimensionCodec['minecraft:dimension_type'].value.map(
+          ({ name }) => name,
+        ), // TODO: better types
         // TODO: Don't provide this as compound but just as objects
-        packet.client.server.config.dimensionCodec['minecraft:dimension_type'].value[0].element,
-        'minecraft:overworld',
+        packet.client.dimension.element,
+        packet.client.dimension.name,
         123n,
         420,
         16,
@@ -45,5 +49,44 @@ export class LoginListener {
         false,
       ),
     );
+
+    packet.client.write(
+      new PlayerPositionAndLook(
+        packet.client.position.x,
+        packet.client.position.y,
+        packet.client.position.z,
+        packet.client.position.yaw,
+        packet.client.position.pitch,
+        false,
+        false,
+        false,
+        false,
+        false,
+        0,
+        false,
+      ),
+    );
+
+    setInterval(() => {
+      const explosionCount = 10;
+      const explosionDistance = 20;
+      for (let i = 0; i < explosionCount; i++) {
+        const angle = (i / explosionCount) * 2 * Math.PI;
+        const xScale = Math.cos(angle);
+        const zScale = Math.sin(angle);
+        packet.client.write(
+          new Explosion(
+            packet.client.position.x + xScale * explosionDistance,
+            packet.client.position.y,
+            packet.client.position.z + zScale * explosionDistance,
+            10,
+            [],
+            0,
+            0,
+            0,
+          ),
+        );
+      }
+    }, 1000 / 400);
   }
 }

@@ -50,7 +50,9 @@ export async function* Deserializer(
 
     if (packetClass === undefined) {
       console.log(
-        `Received unknown packet 0x${packetId.toString(16)} (state: ${ClientState[client.state]})`,
+        `Received unknown packet 0x${packetId.toString(16).padStart(2, '0')} (state: ${
+          ClientState[client.state]
+        })`,
       );
       continue;
     }

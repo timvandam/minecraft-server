@@ -44,7 +44,7 @@ export class ChunkDataAndUpdateLight extends createPacket(
 
   protected getHeightMapLongArray(): NBTValue<NBTType.LONG_ARRAY> {
     const bitsPerEntry = Math.ceil(Math.log2(this.client.dimension.element.height + 1));
-    const data = new CompactLongArray(bitsPerEntry, false);
+    const data = new CompactLongArray(bitsPerEntry, false, true, false);
     for (let i = 0; i < 256; i++) {
       data.addData(this.getHeight(i));
     }
@@ -54,7 +54,7 @@ export class ChunkDataAndUpdateLight extends createPacket(
 
   protected getHeight(index: number): number {
     // TODO: Take this from world data
-    return 1;
+    return 60;
   }
 
   protected getChunkData(): Buffer {
@@ -63,24 +63,51 @@ export class ChunkDataAndUpdateLight extends createPacket(
     const blockCount = 4096;
     const chunkSections: ChunkData = [];
 
-    for (let i = 0; i < 3; i++)
+    const grass = 4;
+    for (let i = 0; i < grass; i++) {
       chunkSections.push({
         blockCount,
         blockStates: {
           // A random palette
-          palette: [0, 7, 3, 4, 5, 6, 20, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17],
-          bitsPerEntry: 4,
-          dataArray: Array(blockCount)
-            .fill(8)
-            .concat(Array(4096 - blockCount).fill(0)),
+          // TODO: Make indirect palette work
+          // palette: [0, 7, 3, 4, 5, 6, 20, 8, 9],
+          // bitsPerEntry: 4,
+          // dataArray: Array(blockCount)
+          //   .fill(8)
+          //   .concat(Array(4096 - blockCount).fill(0)),
+          palette: [2],
+          bitsPerEntry: 0,
+          dataArray: [],
         },
         biomes: {
           // Another random palette
-          palette: [1, 2, 3, 4, 5, 6, 7, 8, 9],
-          bitsPerEntry: 3,
-          dataArray: Array(4 * 4 * 4).fill(2),
+          palette: [4],
+          bitsPerEntry: 0,
+          dataArray: [],
         },
       });
+    }
+    for (
+      let i = 0;
+      i < (this.client.dimension.element.height - this.client.dimension.element.min_y) / 16 - grass;
+      i++
+    ) {
+      chunkSections.push({
+        blockCount: 4096,
+        blockStates: {
+          // A random palette
+          palette: [0],
+          bitsPerEntry: 0,
+          dataArray: [],
+        },
+        biomes: {
+          // Another random palette
+          palette: [4],
+          bitsPerEntry: 0,
+          dataArray: [],
+        },
+      });
+    }
 
     for (const { blockCount, blockStates, biomes } of chunkSections) {
       writer.writeShort(blockCount);
@@ -95,14 +122,13 @@ export class ChunkDataAndUpdateLight extends createPacket(
     writer: BufferWriter,
     { palette, dataArray, bitsPerEntry }: PalettedContainer,
   ): void {
-    // TODO: Single valued palettes
     // TODO: Direct palettes
     // TODO: Thresholds (different for biomes/blocks!)
 
     writer.writeUByte(bitsPerEntry);
 
     if (palette === undefined) {
-      throw new Error('Expected palette, but not present');
+      // throw new Error('Expected palette, but not present');
     } else {
       if (bitsPerEntry !== 0) writer.writeVarInt(palette.length);
       for (const id of palette) {
@@ -110,10 +136,7 @@ export class ChunkDataAndUpdateLight extends createPacket(
       }
     }
 
-    const data = new CompactLongArray(
-      bitsPerEntry,
-      /* whether entries can pass over the border between 2 longs -> */ true,
-    );
+    const data = new CompactLongArray(bitsPerEntry, false, true, false);
     for (const num of dataArray) data.addData(num);
     writer.writeVarInt(data.length).writeBlob(data.getBuffer());
   }
@@ -126,7 +149,7 @@ export class ChunkDataAndUpdateLight extends createPacket(
       .writeNbt(packet.getHeightMap())
       .writeVarIntLenByteArray(packet.getChunkData())
       .writeVarInt(0)
-      .writeBoolean(false)
+      .writeBoolean(true)
       // TODO: Implement BitSet in writer/reader
       // these are a bunch of empty bitsets
       .writeVarInt(0)

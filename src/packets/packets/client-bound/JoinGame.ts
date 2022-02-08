@@ -4,13 +4,7 @@ import { PacketDirection } from '../PacketDirection';
 import { createPacket } from '../createPacket';
 import { BufferWriter } from '../../../data-types/BufferWriter';
 import { byte, compound, double, float, int, list, NBTCompound } from '../../../data-types/nbt';
-import {
-  BiomeEffects,
-  BiomeProperties,
-  BiomeRegistryEntry,
-  Dimension,
-  DimensionType,
-} from '../../../config/data/DimensionCodec';
+import { BiomeEffects, BiomeProperties, DimensionType } from '../../../config/data/DimensionCodec';
 
 export enum Gamemode {
   SURVIVAL = 0,

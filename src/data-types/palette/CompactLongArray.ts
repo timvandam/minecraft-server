@@ -12,7 +12,18 @@ export class CompactLongArray {
     return this.data.length;
   }
 
-  constructor(public readonly bitsPerEntry: number, public readonly canCrossBorders: boolean) {
+  /**
+   * @param bitsPerEntry Amount of bits per entry
+   * @param canCrossBorders Whether or not an entry can start in one long, and end in the next
+   * @param alignRight Whether to align all the bits to the right of a long (i.e. to the LSB)
+   * @param addRight Whether to add data to the right or left of existing data
+   */
+  constructor(
+    public readonly bitsPerEntry: number,
+    public readonly canCrossBorders: boolean,
+    public readonly alignRight = false,
+    public readonly addRight = true,
+  ) {
     if (bitsPerEntry > 32) {
       throw new Error('Bits per entry above 32 is not supported - JS bitwise use 32 bits');
     }
@@ -34,7 +45,7 @@ export class CompactLongArray {
         !this.canCrossBorders &&
         bitsRemaining > this.elementSizeAvailable
       ) {
-        this.data[this.data.length - 1] <<= BigInt(this.elementSizeAvailable);
+        if (!this.alignRight) this.data[this.data.length - 1] <<= BigInt(this.elementSizeAvailable);
         this.elementSizeAvailable = 0;
       }
 
@@ -48,8 +59,13 @@ export class CompactLongArray {
       const bitCount = Math.min(this.elementSizeAvailable, bitsRemaining);
       const rightPaddingLength = BigInt(bitsRemaining - bitCount);
       const mask = ((1n << BigInt(bitCount)) - 1n) << rightPaddingLength;
-      this.data[this.data.length - 1] <<= BigInt(bitCount);
-      this.data[this.data.length - 1] |= (mask & BigInt(num)) >> rightPaddingLength;
+
+      let insertBits = (mask & BigInt(num)) >> rightPaddingLength;
+
+      if (this.addRight) this.data[this.data.length - 1] <<= BigInt(bitCount);
+      else insertBits <<= BigInt(LONG_BIT_LENGTH - this.elementSizeAvailable);
+
+      this.data[this.data.length - 1] |= insertBits;
 
       bitsRemaining -= bitCount;
       this.elementSizeAvailable -= bitCount;
@@ -60,7 +76,7 @@ export class CompactLongArray {
     if (this.data.length === 0) return [];
 
     const longArray = [...this.data];
-    longArray[longArray.length - 1] <<= BigInt(this.elementSizeAvailable);
+    if (!this.alignRight) longArray[longArray.length - 1] <<= BigInt(this.elementSizeAvailable);
     return longArray;
   }
 

@@ -11,7 +11,7 @@ import { DimensionTypeRegistryEntry } from './config/data/DimensionCodec';
 
 export class MinecraftClient {
   public state: ClientState = ClientState.HANDSHAKING;
-  public position = { x: 10, y: 62, z: 10, yaw: 0, pitch: 0, onGround: true };
+  public position = { x: 10, y: 64, z: 10, yaw: 0, pitch: 0, onGround: true };
   public dimension: DimensionTypeRegistryEntry =
     this.server.config.dimensionCodec['minecraft:dimension_type'].value[0];
   // TODO: Maybe put all the above in their own object (public, rest protected)

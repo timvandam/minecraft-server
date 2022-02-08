@@ -11,6 +11,8 @@ import { ChunkDataAndUpdateLight } from '../../packets/packets/client-bound/Chun
 import { UpdateViewPosition } from '../../packets/packets/client-bound/UpdateViewPosition';
 import { KeepAlive } from '../../packets/packets/client-bound/KeepAlive';
 import { ClientBoundPluginMessage } from '../../packets/packets/client-bound/ClientBoundPluginMessage';
+import { ClientBoundHeldItemChange } from '../../packets/packets/client-bound/ClientBoundHeldItemChange';
+import { DeclareRecipes } from '../../packets/packets/client-bound/DeclareRecipes';
 
 export class LoginListener {
   @EventHandler
@@ -48,10 +50,20 @@ export class LoginListener {
         16,
         false,
         true,
-        true,
+        false,
         false,
       ),
     );
+
+    await packet.client.write(
+      new ClientBoundPluginMessage(
+        'minecraft:brand',
+        Buffer.concat([Buffer.of(3), Buffer.from('tim', 'utf8')]),
+      ),
+    );
+
+    await packet.client.write(new ClientBoundHeldItemChange(1));
+    await packet.client.write(new DeclareRecipes([]));
 
     await packet.client.write(
       new PlayerPositionAndLook(
@@ -70,15 +82,10 @@ export class LoginListener {
       ),
     );
 
-    await packet.client.write(
-      new ClientBoundPluginMessage(
-        'minecraft:brand',
-        Buffer.concat([Buffer.of(3), Buffer.from('tim', 'utf8')]),
-      ),
-    );
-
     const chunkX = Math.floor(packet.client.position.x / 16);
     const chunkZ = Math.floor(packet.client.position.z / 16);
+
+    await packet.client.write(new UpdateViewPosition(chunkX, chunkZ));
 
     const diff = 1;
     for (let i = -diff; i <= diff; i++) {

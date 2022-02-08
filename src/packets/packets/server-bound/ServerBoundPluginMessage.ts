@@ -4,7 +4,7 @@ import { PacketDirection } from '../PacketDirection';
 import { createPacket } from '../createPacket';
 import { BufferReader } from '../../../data-types/BufferReader';
 
-export class PluginMessage extends createPacket(
+export class ServerBoundPluginMessage extends createPacket(
   0x0a,
   PacketDirection.SERVER_BOUND,
   ClientState.PLAY,
@@ -17,8 +17,8 @@ export class PluginMessage extends createPacket(
     registerPacket(this);
   }
 
-  static fromBuffer(buf: Buffer): PluginMessage {
+  static fromBuffer(buf: Buffer): ServerBoundPluginMessage {
     const reader = new BufferReader(buf);
-    return new PluginMessage(reader.readIdentifier(), reader.buffer);
+    return new ServerBoundPluginMessage(reader.readIdentifier(), reader.buffer);
   }
 }

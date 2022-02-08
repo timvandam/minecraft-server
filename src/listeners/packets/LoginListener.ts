@@ -5,9 +5,12 @@ import { LoginSuccess } from '../../packets/packets/client-bound/LoginSuccess';
 import { ClientState } from '../../packets/ClientState';
 import { v3 as uuid } from 'uuid';
 import { Gamemode, JoinGame } from '../../packets/packets/client-bound/JoinGame';
-import { byte, compound, double, float, int, list } from '../../data-types/nbt';
 import { PlayerPositionAndLook } from '../../packets/packets/client-bound/PlayerPositionAndLook';
 import { Explosion } from '../../packets/packets/client-bound/Explosion';
+import { ChunkDataAndUpdateLight } from '../../packets/packets/client-bound/ChunkDataAndUpdateLight';
+import { UpdateViewPosition } from '../../packets/packets/client-bound/UpdateViewPosition';
+import { KeepAlive } from '../../packets/packets/client-bound/KeepAlive';
+import { ClientBoundPluginMessage } from '../../packets/packets/client-bound/ClientBoundPluginMessage';
 
 export class LoginListener {
   @EventHandler
@@ -27,7 +30,7 @@ export class LoginListener {
     await packet.client.write(new LoginSuccess(userUuid, packet.username));
     packet.client.state = ClientState.PLAY;
 
-    packet.client.write(
+    await packet.client.write(
       new JoinGame(
         227,
         false,
@@ -50,7 +53,7 @@ export class LoginListener {
       ),
     );
 
-    packet.client.write(
+    await packet.client.write(
       new PlayerPositionAndLook(
         packet.client.position.x,
         packet.client.position.y,
@@ -67,26 +70,51 @@ export class LoginListener {
       ),
     );
 
-    setInterval(() => {
-      const explosionCount = 10;
-      const explosionDistance = 20;
-      for (let i = 0; i < explosionCount; i++) {
-        const angle = (i / explosionCount) * 2 * Math.PI;
-        const xScale = Math.cos(angle);
-        const zScale = Math.sin(angle);
-        packet.client.write(
-          new Explosion(
-            packet.client.position.x + xScale * explosionDistance,
-            packet.client.position.y,
-            packet.client.position.z + zScale * explosionDistance,
-            10,
-            [],
-            0,
-            0,
-            0,
-          ),
-        );
+    await packet.client.write(
+      new ClientBoundPluginMessage(
+        'minecraft:brand',
+        Buffer.concat([Buffer.of(3), Buffer.from('tim', 'utf8')]),
+      ),
+    );
+
+    const chunkX = Math.floor(packet.client.position.x / 16);
+    const chunkZ = Math.floor(packet.client.position.z / 16);
+
+    const diff = 1;
+    for (let i = -diff; i <= diff; i++) {
+      for (let j = -diff; j <= diff; j++) {
+        await packet.client.write(new ChunkDataAndUpdateLight(chunkX + i, chunkZ + j));
       }
-    }, 1000 / 400);
+    }
+
+    setInterval(async () => {
+      const chunkX = Math.floor(packet.client.position.x / 16);
+      const chunkZ = Math.floor(packet.client.position.z / 16);
+
+      await packet.client.write(new UpdateViewPosition(chunkX, chunkZ));
+      await packet.client.write(new KeepAlive(BigInt(Math.floor(Math.random() * 10000000))));
+    }, 2000);
+
+    // setInterval(() => {
+    //   const explosionCount = 10;
+    //   const explosionDistance = 20;
+    //   for (let i = 0; i < explosionCount; i++) {
+    //     const angle = (i / explosionCount) * 2 * Math.PI;
+    //     const xScale = Math.cos(angle);
+    //     const zScale = Math.sin(angle);
+    //     packet.client.write(
+    //       new Explosion(
+    //         packet.client.position.x + xScale * explosionDistance,
+    //         packet.client.position.y,
+    //         packet.client.position.z + zScale * explosionDistance,
+    //         10,
+    //         [],
+    //         0,
+    //         0,
+    //         0,
+    //       ),
+    //     );
+    //   }
+    // }, 1000 / 400);
   }
 }

@@ -33,6 +33,10 @@ export class MinecraftServer {
     this.packetBus.register(...packetListeners);
 
     this.server.on('connection', async (socket) => {
+      socket.on('error', (error) => {
+        console.log('Socket error:', error);
+      });
+
       const client = new MinecraftClient(this, socket, this.packetBus);
     });
   }

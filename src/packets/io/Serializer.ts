@@ -24,7 +24,7 @@ export async function* Serializer(
       .getBuffer();
 
     if (writer.length > MAX_PACKET_SIZE) {
-      console.log('Attempting to send a packet that is too large. Ignoring it');
+      throw new Error('Attempting to send a packet that is too large');
       continue;
     }
 
@@ -45,7 +45,7 @@ export async function* Serializer(
     writer.writeBlob(payload);
 
     if (writer.length > MAX_PACKET_SIZE) {
-      console.log('Attempting to send a packet that is too large. Ignoring it');
+      throw new Error('Attempting to send a packet that is too large');
       continue;
     }
 

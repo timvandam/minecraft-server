@@ -10,6 +10,7 @@ export class PlayerMovementListener {
     packet.client.position.x = packet.x;
     packet.client.position.y = packet.y;
     packet.client.position.z = packet.z;
+    packet.client.position.onGround = packet.onGround;
   }
 
   @EventHandler
@@ -19,16 +20,18 @@ export class PlayerMovementListener {
     packet.client.position.z = packet.z;
     packet.client.position.yaw = packet.yaw;
     packet.client.position.pitch = packet.pitch;
+    packet.client.position.onGround = packet.onGround;
   }
 
   @EventHandler
   playerRotation(packet: PlayerRotation) {
     packet.client.position.yaw = packet.yaw;
     packet.client.position.pitch = packet.pitch;
+    packet.client.position.onGround = packet.onGround;
   }
 
   @EventHandler
   playerMovement(packet: PlayerMovement) {
-    //
+    packet.client.position.onGround = packet.onGround;
   }
 }

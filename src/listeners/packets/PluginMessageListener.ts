@@ -1,9 +1,9 @@
 import { EventHandler } from 'decorator-events';
-import { PluginMessage } from '../../packets/packets/server-bound/PluginMessage';
+import { ServerBoundPluginMessage } from '../../packets/packets/server-bound/ServerBoundPluginMessage';
 
 export class PluginMessageListener {
   @EventHandler
-  message(packet: PluginMessage) {
+  message(packet: ServerBoundPluginMessage) {
     console.log(
       `Received plugin message for channel ${packet.channel}: ${packet.data.toString('utf8')}`,
     );

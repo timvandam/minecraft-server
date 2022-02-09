@@ -63,21 +63,21 @@ export class ChunkDataAndUpdateLight extends createPacket(
     const blockCount = 4096;
     const chunkSections: ChunkData = [];
 
-    const grass = 4;
+    const grass = 1;
     for (let i = 0; i < grass; i++) {
       chunkSections.push({
         blockCount,
         blockStates: {
           // A random palette
           // TODO: Make indirect palette work
-          // palette: [0, 7, 3, 4, 5, 6, 20, 8, 9],
-          // bitsPerEntry: 4,
-          // dataArray: Array(blockCount)
-          //   .fill(8)
-          //   .concat(Array(4096 - blockCount).fill(0)),
-          palette: [2],
-          bitsPerEntry: 0,
-          dataArray: [],
+          palette: [0, 7, 3, 4, 5, 6, 20, 8, 9],
+          bitsPerEntry: 4,
+          dataArray: Array(blockCount)
+            .fill(8)
+            .concat(Array(4096 - blockCount).fill(0)),
+          // palette: [2],
+          // bitsPerEntry: 0,
+          // dataArray: [],
         },
         biomes: {
           // Another random palette

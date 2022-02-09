@@ -12,6 +12,7 @@ import { DimensionTypeRegistryEntry } from './config/data/DimensionCodec';
 export class MinecraftClient {
   public state: ClientState = ClientState.HANDSHAKING;
   public position = { x: 10, y: 64, z: 10, yaw: 0, pitch: 0, onGround: true };
+  public renderDistance = 2;
   public dimension: DimensionTypeRegistryEntry =
     this.server.config.dimensionCodec['minecraft:dimension_type'].value[0];
   // TODO: Maybe put all the above in their own object (public, rest protected)
@@ -43,7 +44,6 @@ export class MinecraftClient {
 
   write(packet: Packet): Promise<void> {
     return new Promise((resolve) => {
-      console.log('Sending', packet.constructor.name);
       // console.log('Outgoing', packet);
       Object.defineProperty(packet, 'client', { value: this });
       this.serializer.write(packet, () => resolve());

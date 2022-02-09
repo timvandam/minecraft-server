@@ -29,10 +29,10 @@ export class LoginListener {
 
     // TODO: Store in the client
     const userUuid = uuid(`OfflinePlayer:${packet.username}`, Buffer.alloc(16), Buffer.alloc(16));
-    await packet.client.write(new LoginSuccess(userUuid, packet.username));
+    packet.client.write(new LoginSuccess(userUuid, packet.username));
     packet.client.state = ClientState.PLAY;
 
-    await packet.client.write(
+    packet.client.write(
       new JoinGame(
         227,
         false,
@@ -55,17 +55,17 @@ export class LoginListener {
       ),
     );
 
-    await packet.client.write(
+    packet.client.write(
       new ClientBoundPluginMessage(
         'minecraft:brand',
         Buffer.concat([Buffer.of(3), Buffer.from('tim', 'utf8')]),
       ),
     );
 
-    await packet.client.write(new ClientBoundHeldItemChange(1));
-    await packet.client.write(new DeclareRecipes([]));
+    packet.client.write(new ClientBoundHeldItemChange(1));
+    packet.client.write(new DeclareRecipes([]));
 
-    await packet.client.write(
+    packet.client.write(
       new PlayerPositionAndLook(
         packet.client.position.x,
         packet.client.position.y,
@@ -85,22 +85,15 @@ export class LoginListener {
     const chunkX = Math.floor(packet.client.position.x / 16);
     const chunkZ = Math.floor(packet.client.position.z / 16);
 
-    await packet.client.write(new UpdateViewPosition(chunkX, chunkZ));
-
-    const diff = 1;
-    for (let i = -diff; i <= diff; i++) {
-      for (let j = -diff; j <= diff; j++) {
-        await packet.client.write(new ChunkDataAndUpdateLight(chunkX + i, chunkZ + j));
-      }
-    }
+    packet.client.write(new UpdateViewPosition(chunkX, chunkZ));
 
     setInterval(async () => {
       const chunkX = Math.floor(packet.client.position.x / 16);
       const chunkZ = Math.floor(packet.client.position.z / 16);
 
-      await packet.client.write(new UpdateViewPosition(chunkX, chunkZ));
-      await packet.client.write(new KeepAlive(BigInt(Math.floor(Math.random() * 10000000))));
-    }, 2000);
+      packet.client.write(new UpdateViewPosition(chunkX, chunkZ));
+      packet.client.write(new KeepAlive(BigInt(Math.floor(Math.random() * 10000000))));
+    }, 1000);
 
     // setInterval(() => {
     //   const explosionCount = 10;

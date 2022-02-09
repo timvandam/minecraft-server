@@ -4,6 +4,7 @@ import { EncryptionListener } from './EncryptionListener';
 import { PlayListener } from './PlayListener';
 import { PluginMessageListener } from './PluginMessageListener';
 import { PlayerMovementListener } from './PlayerMovementListener';
+import { PlayerSettingsListener } from './PlayerSettingsListener';
 
 export const packetListeners = [
   new StatusListener(),
@@ -12,4 +13,5 @@ export const packetListeners = [
   new PlayListener(),
   new PluginMessageListener(),
   new PlayerMovementListener(),
+  new PlayerSettingsListener(),
 ];

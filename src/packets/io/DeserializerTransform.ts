@@ -1,40 +1,46 @@
+import { Readable } from 'stream';
+import { MinecraftClient } from '../../MinecraftClient';
+import { getPacketClass } from '../packets/PacketRegistry';
+import { MAX_PACKET_SIZE } from './constants';
+import { promisify } from 'util';
+import zlib from 'zlib';
 import { AsyncBuffer } from './AsyncBuffer';
 import { AsyncBufferReader } from '../../data-types/AsyncBufferReader';
-import { getPacketClass, ServerBoundPacketClass } from '../packets/PacketRegistry';
-import { PacketDirection } from '../packets/PacketDirection';
 import { BufferReader } from '../../data-types';
-import * as zlib from 'zlib';
-import { promisify } from 'util';
-import { MinecraftClient } from '../../MinecraftClient';
-import { Readable } from 'stream';
+import { PacketDirection } from '../packets/PacketDirection';
 import { ClientState } from '../ClientState';
-import { MAX_PACKET_SIZE } from './constants';
 
 const inflate = promisify(zlib.inflate);
 
 /**
+ * Takes packet objects, gives buffers
  * @see {https://wiki.vg/Protocol#Packet_format}
  */
-export async function* Deserializer(
-  client: MinecraftClient,
-  asyncBuffer: AsyncBuffer,
-): AsyncIterable<InstanceType<ServerBoundPacketClass>> {
-  const reader = new AsyncBufferReader(asyncBuffer);
+export class DeserializerTransform extends Readable {
+  constructor(
+    protected readonly client: MinecraftClient,
+    protected readonly asyncBuffer: AsyncBuffer,
+  ) {
+    super({ objectMode: true });
+  }
 
-  while (true) {
+  async _read() {
+    const reader = new AsyncBufferReader(this.asyncBuffer);
+
     const packetLength = await reader.readVarInt();
 
     if (packetLength > MAX_PACKET_SIZE) {
       console.log('Received a packet that was too large, ignoring it');
-      await asyncBuffer.consume(packetLength);
-      continue;
+      await this.asyncBuffer.consume(packetLength);
+      this.push(undefined);
+      return;
     }
 
     const data = await reader.readBlob(packetLength);
 
     const packetReader = new BufferReader(data);
 
-    if (client.compression) {
+    if (this.client.compression) {
       // We are using the compressed format, so include data length and inflate if needed
       const dataLength = packetReader.readVarInt();
       // DataLength != 0 means it was compressed
@@ -45,17 +51,18 @@ export async function* Deserializer(
     const packetId = packetReader.readVarInt();
     const packetData = packetReader.buffer;
 
-    const packetClass = getPacketClass(packetId, PacketDirection.SERVER_BOUND, client.state);
+    const packetClass = getPacketClass(packetId, PacketDirection.SERVER_BOUND, this.client.state);
 
     if (packetClass === undefined) {
       console.log(
         `Received unknown packet 0x${packetId.toString(16).padStart(2, '0')} (state: ${
-          ClientState[client.state]
+          ClientState[this.client.state]
         })`,
       );
-      continue;
+      this.push(undefined);
+      return;
     }
 
-    yield packetClass.fromBuffer(packetData);
+    this.push(packetClass.fromBuffer(packetData));
   }
 }

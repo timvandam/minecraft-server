@@ -17,8 +17,9 @@ const inflate = promisify(zlib.inflate);
  */
 export async function* Deserializer(
   client: MinecraftClient,
-  asyncBuffer: AsyncBuffer,
+  stream: AsyncIterable<Buffer>,
 ): AsyncIterable<InstanceType<ServerBoundPacketClass>> {
+  const asyncBuffer = new AsyncBuffer(Readable.from(stream, { objectMode: false }));
   const reader = new AsyncBufferReader(asyncBuffer);
 
   while (true) {

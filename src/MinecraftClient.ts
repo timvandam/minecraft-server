@@ -1,13 +1,13 @@
 import * as net from 'net';
 import { ClientState } from './packets/ClientState';
-import { Duplex, Readable } from 'stream';
+import { Duplex } from 'stream';
 import { Deserializer } from './packets/io/Deserializer';
 import { EventBus } from 'decorator-events';
+import { Serializer } from './packets/io/Serializer';
 import { Packet } from './packets/packets/createPacket';
+import * as Buffer from 'buffer';
 import { MinecraftServer } from './MinecraftServer';
 import { DimensionTypeRegistryEntry } from './config/data/DimensionCodec';
-import { Serializer } from './packets/io/Serializer';
-import { AsyncBuffer } from './packets/io/AsyncBuffer';
 
 export class MinecraftClient {
   public state: ClientState = ClientState.HANDSHAKING;
@@ -22,8 +22,10 @@ export class MinecraftClient {
     return this.compressionThreshold > 0;
   }
 
-  protected serializer = new Serializer(this);
-  protected deserializer = Readable.from(Deserializer(this, new AsyncBuffer(this.socket)));
+  protected serializer = Duplex.from((packets: AsyncIterable<Packet>) => Serializer(this, packets));
+  protected deserializer = Duplex.from((buffers: AsyncIterable<Buffer>) =>
+    Deserializer(this, buffers),
+  );
   protected packetEmitter = Duplex.from(async (packets: AsyncIterable<Packet>) => {
     for await (const packet of packets) {
       // console.log('Incoming', packet);
@@ -37,8 +39,7 @@ export class MinecraftClient {
     protected readonly socket: net.Socket,
     protected readonly packetBus: EventBus,
   ) {
-    this.serializer.pipe(this.socket);
-    this.deserializer.pipe(this.packetEmitter).resume();
+    this.serializer.pipe(this.socket).pipe(this.deserializer).pipe(this.packetEmitter).resume();
   }
 
   write(packet: Packet): Promise<void> {

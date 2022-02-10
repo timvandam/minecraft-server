@@ -24,8 +24,8 @@ export class LoginListener {
     // );
 
     // packet.client.write(new EncryptionRequest());
-    await packet.client.write(new SetCompression(1));
-    packet.client.compressionThreshold = 1;
+    // await packet.client.write(new SetCompression(1));
+    // packet.client.compressionThreshold = 1;
 
     // TODO: Store in the client
     const userUuid = uuid(`OfflinePlayer:${packet.username}`, Buffer.alloc(16), Buffer.alloc(16));
@@ -41,7 +41,6 @@ export class LoginListener {
         packet.client.server.config.dimensionCodec['minecraft:dimension_type'].value.map(
           ({ name }) => name,
         ), // TODO: better types
-        // TODO: Don't provide this as compound but just as objects
         packet.client.dimension.element,
         packet.client.dimension.name,
         123n,
@@ -61,39 +60,6 @@ export class LoginListener {
         Buffer.concat([Buffer.of(3), Buffer.from('tim', 'utf8')]),
       ),
     );
-
-    packet.client.write(new ClientBoundHeldItemChange(1));
-    packet.client.write(new DeclareRecipes([]));
-
-    packet.client.write(
-      new PlayerPositionAndLook(
-        packet.client.position.x,
-        packet.client.position.y,
-        packet.client.position.z,
-        packet.client.position.yaw,
-        packet.client.position.pitch,
-        false,
-        false,
-        false,
-        false,
-        false,
-        0,
-        false,
-      ),
-    );
-
-    const chunkX = Math.floor(packet.client.position.x / 16);
-    const chunkZ = Math.floor(packet.client.position.z / 16);
-
-    packet.client.write(new UpdateViewPosition(chunkX, chunkZ));
-
-    setInterval(async () => {
-      const chunkX = Math.floor(packet.client.position.x / 16);
-      const chunkZ = Math.floor(packet.client.position.z / 16);
-
-      packet.client.write(new UpdateViewPosition(chunkX, chunkZ));
-      packet.client.write(new KeepAlive(BigInt(Math.floor(Math.random() * 10000000))));
-    }, 1000);
 
     // setInterval(() => {
     //   const explosionCount = 10;

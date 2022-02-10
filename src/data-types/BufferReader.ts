@@ -1,5 +1,6 @@
 import { deserializeNbt } from './nbt/NBTDeserialize';
 import { NBTCompound } from './nbt';
+import { BitSet } from './BitSet';
 
 export class BufferReader {
   constructor(public buffer: Buffer) {}
@@ -136,5 +137,15 @@ export class BufferReader {
 
   readNbt(): NBTCompound {
     return deserializeNbt(this);
+  }
+
+  readBitSet(): BitSet {
+    const longCount = this.readVarInt();
+    const buf = this.readBlob(longCount * 8);
+    const longs = [];
+    for (let i = 0; i < longCount; i++) {
+      longs.push(buf.readBigUInt64LE(i * 8));
+    }
+    return BitSet.fromLongArray(longs);
   }
 }

@@ -2,6 +2,7 @@ import { Chat } from './Chat';
 import { nbt, serializeNbt } from './nbt/NBTSerialize';
 import { NBTCompound } from './nbt';
 import { NBTType } from './nbt/NBTType';
+import { BitSet } from './BitSet';
 
 export class BufferWriter {
   protected buffers: Buffer[] = [];
@@ -164,6 +165,13 @@ export class BufferWriter {
 
   writeNbt(compound: NBTCompound) {
     serializeNbt(this, compound);
+    return this;
+  }
+
+  writeBitSet(bitSet: BitSet) {
+    const longs = bitSet.getLongArray();
+    this.writeVarInt(longs.length);
+    for (const long of longs) this.writeLong(long);
     return this;
   }
 }

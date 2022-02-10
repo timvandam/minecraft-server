@@ -13,8 +13,9 @@ export class MinecraftClient {
   public state: ClientState = ClientState.HANDSHAKING;
   public position = { x: 10, y: 64, z: 10, yaw: 0, pitch: 0, onGround: true };
   public renderDistance = 2;
-  public dimension: DimensionTypeRegistryEntry =
-    this.server.config.dimensionCodec['minecraft:dimension_type'].value[0];
+  public dimension: DimensionTypeRegistryEntry = this.server.config.dimensionCodec[
+    'minecraft:dimension_type'
+  ].value.find((x) => x.name === 'minecraft:overworld')!;
   // TODO: Maybe put all the above in their own object (public, rest protected)
 
   public compressionThreshold = 0;
@@ -28,7 +29,7 @@ export class MinecraftClient {
   );
   protected packetEmitter = Duplex.from(async (packets: AsyncIterable<Packet>) => {
     for await (const packet of packets) {
-      // console.log('Incoming', packet);
+      console.log('Incoming', packet.constructor.name);
       Object.defineProperty(packet, 'client', { value: this });
       await this.packetBus.emit(packet);
     }
@@ -44,7 +45,7 @@ export class MinecraftClient {
 
   write(packet: Packet): Promise<void> {
     return new Promise((resolve) => {
-      // console.log('Outgoing', packet);
+      console.log('Outgoing', packet.constructor.name);
       Object.defineProperty(packet, 'client', { value: this });
       this.serializer.write(packet, () => resolve());
     });

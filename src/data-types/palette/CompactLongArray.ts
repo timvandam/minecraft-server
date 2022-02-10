@@ -1,6 +1,8 @@
 const LONG_BIT_LENGTH = 64;
 const LONG_BYTE_LENGTH = 8;
 
+// TODO: Generalize. Provide bit length (must be multiple of 8 ofc), provide write function
+// TODO: Check if it can fit given cantcrossborders. Throw if not if bitsPerEntry > size
 /**
  * Paletted container. Uses unsigned longs (64 bits) to write buffers
  */

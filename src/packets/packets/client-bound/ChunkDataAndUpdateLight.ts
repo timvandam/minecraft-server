@@ -7,6 +7,7 @@ import { compound, longArray, NBTCompound } from '../../../data-types/nbt';
 import { NBTValue } from '../../../data-types/nbt/NBTValue';
 import { NBTType } from '../../../data-types/nbt/NBTType';
 import { CompactLongArray } from '../../../data-types/palette/CompactLongArray';
+import { BitSet } from '../../../data-types/BitSet';
 
 type ChunkData = ChunkSection[];
 // sent bottom to top
@@ -70,7 +71,7 @@ export class ChunkDataAndUpdateLight extends createPacket(
         blockStates: {
           // A random palette
           // TODO: Make indirect palette work
-          palette: [0, 7, 3, 4, 5, 6, 20, 8, 9],
+          palette: [0, 1, 2, 3, 4, 5, 6, 7, 9],
           bitsPerEntry: 4,
           dataArray: Array(blockCount)
             .fill(8)
@@ -81,7 +82,7 @@ export class ChunkDataAndUpdateLight extends createPacket(
         },
         biomes: {
           // Another random palette
-          palette: [4],
+          palette: [0], // TODO: Make biome be an enum with codec
           bitsPerEntry: 0,
           dataArray: [],
         },
@@ -93,7 +94,7 @@ export class ChunkDataAndUpdateLight extends createPacket(
       i++
     ) {
       chunkSections.push({
-        blockCount: 4096,
+        blockCount: 0,
         blockStates: {
           // A random palette
           palette: [0],
@@ -102,7 +103,7 @@ export class ChunkDataAndUpdateLight extends createPacket(
         },
         biomes: {
           // Another random palette
-          palette: [4],
+          palette: [0],
           bitsPerEntry: 0,
           dataArray: [],
         },
@@ -143,6 +144,9 @@ export class ChunkDataAndUpdateLight extends createPacket(
 
   static toBuffer(packet: ChunkDataAndUpdateLight): Buffer {
     const writer = new BufferWriter();
+    const chunkSections = Math.floor(
+      (packet.client.dimension.element.height - packet.client.dimension.element.min_y) / 16,
+    );
     writer
       .writeInt(packet.chunkX)
       .writeInt(packet.chunkZ)
@@ -150,14 +154,13 @@ export class ChunkDataAndUpdateLight extends createPacket(
       .writeVarIntLenByteArray(packet.getChunkData())
       .writeVarInt(0)
       .writeBoolean(true)
-      // TODO: Implement BitSet in writer/reader
-      // these are a bunch of empty bitsets
-      .writeVarInt(0)
-      .writeVarInt(0)
-      .writeVarInt(0)
-      .writeVarInt(0)
+      .writeBitSet(new BitSet())
+      .writeBitSet(new BitSet())
+      .writeBitSet(new BitSet())
+      .writeBitSet(new BitSet())
       .writeVarInt(0)
       .writeVarInt(0);
+
     return writer.getBuffer();
   }
 }

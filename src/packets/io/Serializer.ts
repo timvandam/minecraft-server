@@ -25,7 +25,6 @@ export async function* Serializer(
 
     if (writer.length > MAX_PACKET_SIZE) {
       throw new Error('Attempting to send a packet that is too large');
-      continue;
     }
 
     writer.clear();
@@ -46,7 +45,6 @@ export async function* Serializer(
 
     if (writer.length > MAX_PACKET_SIZE) {
       throw new Error('Attempting to send a packet that is too large');
-      continue;
     }
 
     const buf = new BufferWriter()

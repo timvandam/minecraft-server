@@ -16,6 +16,7 @@ export class MinecraftClient {
   public dimension: DimensionTypeRegistryEntry = this.server.config.dimensionCodec[
     'minecraft:dimension_type'
   ].value.find((x) => x.name === 'minecraft:overworld')!;
+  public keepAliveId = 0n;
   // TODO: Maybe put all the above in their own object (public, rest protected)
 
   public compressionThreshold = 0;

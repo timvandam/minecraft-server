@@ -5,6 +5,9 @@ import { PlayListener } from './PlayListener';
 import { PluginMessageListener } from './PluginMessageListener';
 import { PlayerMovementListener } from './PlayerMovementListener';
 import { PlayerSettingsListener } from './PlayerSettingsListener';
+import { DigListener } from './DigListener';
+import { TimeoutListener } from './TimeoutListener';
+import { ChunkListener } from './ChunkListener';
 
 export const packetListeners = [
   new StatusListener(),
@@ -14,4 +17,7 @@ export const packetListeners = [
   new PluginMessageListener(),
   new PlayerMovementListener(),
   new PlayerSettingsListener(),
+  new DigListener(),
+  new TimeoutListener(),
+  new ChunkListener(),
 ];

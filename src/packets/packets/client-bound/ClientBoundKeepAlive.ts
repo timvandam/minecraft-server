@@ -4,7 +4,11 @@ import { PacketDirection } from '../PacketDirection';
 import { createPacket } from '../createPacket';
 import { BufferWriter } from '../../../data-types/BufferWriter';
 
-export class KeepAlive extends createPacket(0x21, PacketDirection.CLIENT_BOUND, ClientState.PLAY) {
+export class ClientBoundKeepAlive extends createPacket(
+  0x21,
+  PacketDirection.CLIENT_BOUND,
+  ClientState.PLAY,
+) {
   constructor(public readonly keepAliveId: bigint) {
     super();
   }
@@ -13,7 +17,7 @@ export class KeepAlive extends createPacket(0x21, PacketDirection.CLIENT_BOUND, 
     registerPacket(this);
   }
 
-  static toBuffer(packet: KeepAlive): Buffer {
+  static toBuffer(packet: ClientBoundKeepAlive): Buffer {
     const writer = new BufferWriter();
     writer.writeLong(packet.keepAliveId);
     return writer.getBuffer();

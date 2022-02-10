@@ -5,38 +5,24 @@ import { LoginSuccess } from '../../packets/packets/client-bound/LoginSuccess';
 import { ClientState } from '../../packets/ClientState';
 import { v3 as uuid } from 'uuid';
 import { Gamemode, JoinGame } from '../../packets/packets/client-bound/JoinGame';
-import { PlayerPositionAndLook } from '../../packets/packets/client-bound/PlayerPositionAndLook';
-import { Explosion } from '../../packets/packets/client-bound/Explosion';
-import { ChunkDataAndUpdateLight } from '../../packets/packets/client-bound/ChunkDataAndUpdateLight';
-import { UpdateViewPosition } from '../../packets/packets/client-bound/UpdateViewPosition';
-import { KeepAlive } from '../../packets/packets/client-bound/KeepAlive';
 import { ClientBoundPluginMessage } from '../../packets/packets/client-bound/ClientBoundPluginMessage';
-import { ClientBoundHeldItemChange } from '../../packets/packets/client-bound/ClientBoundHeldItemChange';
-import { DeclareRecipes } from '../../packets/packets/client-bound/DeclareRecipes';
 
 export class LoginListener {
   @EventHandler
   async loginStart(packet: LoginStart) {
-    console.log('loginstart by', packet.username);
-
-    // return packet.client.write(
-    //   new Disconnect(chat.red`${chat.bold`Work in progress!`} Come back later`),
-    // );
-
-    // packet.client.write(new EncryptionRequest());
-    // await packet.client.write(new SetCompression(1));
-    // packet.client.compressionThreshold = 1;
+    await packet.client.write(new SetCompression(1));
+    packet.client.compressionThreshold = 1;
 
     // TODO: Store in the client
     const userUuid = uuid(`OfflinePlayer:${packet.username}`, Buffer.alloc(16), Buffer.alloc(16));
-    packet.client.write(new LoginSuccess(userUuid, packet.username));
+    await packet.client.write(new LoginSuccess(userUuid, packet.username));
     packet.client.state = ClientState.PLAY;
 
-    packet.client.write(
+    await packet.client.write(
       new JoinGame(
         227,
         false,
-        Gamemode.CREATIVE,
+        Gamemode.SURVIVAL,
         undefined,
         packet.client.server.config.dimensionCodec['minecraft:dimension_type'].value.map(
           ({ name }) => name,
@@ -54,33 +40,11 @@ export class LoginListener {
       ),
     );
 
-    packet.client.write(
+    await packet.client.write(
       new ClientBoundPluginMessage(
         'minecraft:brand',
         Buffer.concat([Buffer.of(3), Buffer.from('tim', 'utf8')]),
       ),
     );
-
-    // setInterval(() => {
-    //   const explosionCount = 10;
-    //   const explosionDistance = 20;
-    //   for (let i = 0; i < explosionCount; i++) {
-    //     const angle = (i / explosionCount) * 2 * Math.PI;
-    //     const xScale = Math.cos(angle);
-    //     const zScale = Math.sin(angle);
-    //     packet.client.write(
-    //       new Explosion(
-    //         packet.client.position.x + xScale * explosionDistance,
-    //         packet.client.position.y,
-    //         packet.client.position.z + zScale * explosionDistance,
-    //         10,
-    //         [],
-    //         0,
-    //         0,
-    //         0,
-    //       ),
-    //     );
-    //   }
-    // }, 1000 / 400);
   }
 }

@@ -5,12 +5,12 @@ import { createPacket } from '../createPacket';
 import { BufferWriter } from '../../../data-types/BufferWriter';
 import { Chat } from '../../../data-types/Chat';
 
-export class Disconnect extends createPacket(
-  0x00,
+export class DisconnectPlay extends createPacket(
+  0x1a,
   PacketDirection.CLIENT_BOUND,
-  ClientState.LOGIN,
+  ClientState.PLAY,
 ) {
-  constructor(public readonly reason: Chat | string) {
+  constructor(public readonly chat: Chat | string) {
     super();
   }
 
@@ -18,7 +18,9 @@ export class Disconnect extends createPacket(
     registerPacket(this);
   }
 
-  static toBuffer(packet: Disconnect): Buffer {
-    return new BufferWriter().writeChat(packet.reason).getBuffer();
+  static toBuffer(packet: DisconnectPlay): Buffer {
+    const writer = new BufferWriter();
+    writer.writeChat(packet.chat);
+    return writer.getBuffer();
   }
 }

@@ -1,8 +1,9 @@
 import { Chat } from './Chat';
-import { nbt, serializeNbt } from './nbt/NBTSerialize';
+import { serializeNbt } from './nbt/NBTSerialize';
 import { NBTCompound } from './nbt';
-import { NBTType } from './nbt/NBTType';
 import { BitSet } from './BitSet';
+import { serializeEntityMetadata } from './entity-metadata/EntityMetadataSerialize';
+import { EntityMetadata } from './entity-metadata/EntityMetadata';
 
 export class BufferWriter {
   protected buffers: Buffer[] = [];
@@ -172,6 +173,11 @@ export class BufferWriter {
     const longs = bitSet.getLongArray();
     this.writeVarInt(longs.length);
     for (const long of longs) this.writeLong(long);
+    return this;
+  }
+
+  writeEntityMetadata(entity: EntityMetadata) {
+    serializeEntityMetadata(this, entity);
     return this;
   }
 }

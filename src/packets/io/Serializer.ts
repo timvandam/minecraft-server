@@ -4,6 +4,7 @@ import * as zlib from 'zlib';
 import { promisify } from 'util';
 import { MinecraftClient } from '../../MinecraftClient';
 import { MAX_PACKET_SIZE } from './constants';
+import { compressionBox } from '../../box';
 
 const deflate = promisify(zlib.deflate);
 
@@ -28,11 +29,12 @@ export async function* Serializer(
     }
 
     writer.clear();
-    if (client.compression) {
+    if (client.storage.has(compressionBox)) {
       // We are using the compressed packet format.
       //  Compress if the payload size is over the threshold.
       //  Otherwise, add Data Length = 0 to indicate that the payload is not compressed.
-      const shouldCompress = payload.length >= client.compressionThreshold;
+      const { threshold } = client.storage.getOrThrow(compressionBox);
+      const shouldCompress = payload.length >= threshold;
       if (shouldCompress) {
         writer.writeVarInt(payload.length);
         payload = await deflate(payload);

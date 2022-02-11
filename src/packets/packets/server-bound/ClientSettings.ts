@@ -15,6 +15,16 @@ export enum Hand {
   RIGHT = 1,
 }
 
+export enum SkinPart {
+  CAPE = 0x01,
+  JACKET = 0x02,
+  LEFT_SLEEVE = 0x04,
+  RIGHT_SLEEVE = 0x08,
+  LEFT_PANTS_LEG = 0x10,
+  RIGHT_PANTS_LEG = 0x20,
+  HAT = 0x40,
+}
+
 export class ClientSettings extends createPacket(
   0x05,
   PacketDirection.SERVER_BOUND,
@@ -25,7 +35,7 @@ export class ClientSettings extends createPacket(
     public readonly viewDistance: number,
     public readonly chatMode: ChatMode,
     public readonly charColors: boolean,
-    public readonly displayedSkinParts: number, // TODO enum?
+    public readonly displayedSkinParts: SkinPart,
     public readonly mainHand: Hand,
     public readonly textFiltering: boolean,
     public readonly allowServerListing: boolean,

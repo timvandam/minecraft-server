@@ -7,70 +7,71 @@ import { UpdateViewPosition } from '../../packets/packets/client-bound/UpdateVie
 import { MinecraftClient } from '../../MinecraftClient';
 import { LoginStart } from '../../packets/packets/server-bound/LoginStart';
 import { PlayerPositionAndLook } from '../../packets/packets/client-bound/PlayerPositionAndLook';
-import { ClientSettings } from '../../packets/packets/server-bound/ClientSettings';
+import { positionBox } from '../../box';
+
+export type Position = {
+  x: number;
+  y: number;
+  z: number;
+  onGround: boolean;
+  yaw: number;
+  pitch: number;
+};
 
 export class PlayerMovementListener {
-  protected updateViewPosition(client: MinecraftClient) {
-    const chunkX = Math.floor(client.position.x / 16);
-    const chunkZ = Math.floor(client.position.z / 16);
+  protected updatePosition(client: MinecraftClient, current: Position) {
+    const prev = client.storage.getOrThrow(positionBox);
 
-    client.write(new UpdateViewPosition(chunkX, chunkZ));
-  }
+    if (!prev.onGround && current.onGround) {
+      // TODO: Apply fall damage in different listener
+    }
 
-  protected sendChunks(client: MinecraftClient) {
-    //
+    const prevChunkX = Math.floor(prev.x / 16);
+    const prevChunkZ = Math.floor(prev.z / 16);
+    const currentChunkX = Math.floor(current.x / 16);
+    const currentChunkZ = Math.floor(current.z / 16);
+    if (prevChunkX !== currentChunkX || prevChunkZ !== currentChunkZ) {
+      client.write(new UpdateViewPosition(currentChunkX, currentChunkZ));
+    }
+
+    client.storage.put(positionBox, current);
   }
 
   @EventHandler({ priority: EventPriority.HIGHEST })
   spawnPlayer(packet: LoginStart) {
+    const x = 10;
+    const y = 25;
+    const z = 10;
+    const yaw = 0;
+    const pitch = 0;
+    const onGround = true;
+    packet.client.storage.put(positionBox, { x, y, z, yaw, pitch, onGround });
     packet.client.write(
-      new PlayerPositionAndLook(
-        packet.client.position.x,
-        packet.client.position.y,
-        packet.client.position.z,
-        packet.client.position.yaw,
-        packet.client.position.pitch,
-        false,
-        false,
-        false,
-        false,
-        false,
-        0,
-        false,
-      ),
+      new PlayerPositionAndLook(x, y, z, yaw, pitch, false, false, false, false, false, 0, false),
     );
   }
 
   @EventHandler
-  playerPosition(packet: PlayerPosition) {
-    packet.client.position.x = packet.x;
-    packet.client.position.y = packet.y;
-    packet.client.position.z = packet.z;
-    packet.client.position.onGround = packet.onGround;
-    this.updateViewPosition(packet.client);
+  playerPosition({ x, y, z, onGround, client }: PlayerPosition) {
+    const current = client.storage.getOrThrow(positionBox);
+    this.updatePosition(client, { ...current, x, y, z, onGround });
   }
 
   @EventHandler
-  playerPositionAndRotation(packet: PlayerPositionAndRotation) {
-    packet.client.position.x = packet.x;
-    packet.client.position.y = packet.y;
-    packet.client.position.z = packet.z;
-    packet.client.position.yaw = packet.yaw;
-    packet.client.position.pitch = packet.pitch;
-    packet.client.position.onGround = packet.onGround;
-    this.updateViewPosition(packet.client);
+  playerPositionAndRotation({ client, x, y, z, yaw, pitch, onGround }: PlayerPositionAndRotation) {
+    const current = client.storage.getOrThrow(positionBox);
+    this.updatePosition(client, { ...current, x, y, z, onGround, yaw, pitch });
   }
 
   @EventHandler
-  playerRotation(packet: PlayerRotation) {
-    packet.client.position.yaw = packet.yaw;
-    packet.client.position.pitch = packet.pitch;
-    packet.client.position.onGround = packet.onGround;
-    this.updateViewPosition(packet.client);
+  playerRotation({ client, yaw, pitch, onGround }: PlayerRotation) {
+    const current = client.storage.getOrThrow(positionBox);
+    this.updatePosition(client, { ...current, onGround, yaw, pitch });
   }
 
   @EventHandler
-  playerMovement(packet: PlayerMovement) {
-    packet.client.position.onGround = packet.onGround;
+  playerMovement({ client, onGround }: PlayerMovement) {
+    const current = client.storage.getOrThrow(positionBox);
+    this.updatePosition(client, { ...current, onGround });
   }
 }

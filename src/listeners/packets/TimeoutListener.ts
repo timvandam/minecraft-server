@@ -5,15 +5,16 @@ import { chat } from '../../data-types/Chat';
 import { LoginStart } from '../../packets/packets/server-bound/LoginStart';
 import { MinecraftClient } from '../../MinecraftClient';
 import { DisconnectPlay } from '../../packets/packets/client-bound/DisconnectPlay';
+import { keepAliveBox } from '../../box';
 
 export class TimeoutListener {
   protected sendKeepAlive(client: MinecraftClient) {
     const keepAliveId = BigInt(Math.floor(Math.random() * 1000000));
-    client.keepAliveId = keepAliveId;
+    client.storage.put(keepAliveBox, { keepAliveId });
     client.write(new ClientBoundKeepAlive(keepAliveId));
 
     setTimeout(() => {
-      if (client.keepAliveId === keepAliveId) {
+      if (client.storage.get(keepAliveBox)?.keepAliveId === keepAliveId) {
         client.write(new DisconnectPlay('Timed out'));
       }
     }, 30 * 1000);
@@ -21,12 +22,12 @@ export class TimeoutListener {
 
   @EventHandler
   timeout(packet: ServerBoundKeepAlive) {
-    if (packet.keepAliveId !== packet.client.keepAliveId) {
+    if (packet.keepAliveId !== packet.client.storage.get(keepAliveBox)?.keepAliveId) {
       packet.client.write(new DisconnectPlay(chat.red`Timed out`));
       return;
     }
 
-    packet.client.keepAliveId = -1n;
+    packet.client.storage.delete(keepAliveBox);
 
     setTimeout(() => {
       this.sendKeepAlive(packet.client);

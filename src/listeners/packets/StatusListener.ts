@@ -5,15 +5,17 @@ import { Ping } from '../../packets/packets/server-bound/Ping';
 import { Response } from '../../packets/packets/client-bound/Response';
 import { Pong } from '../../packets/packets/client-bound/Pong';
 import { chat } from '../../data-types/Chat';
+import { clientStateBox } from '../../box';
 
 export class StatusListener {
   @EventHandler
   handshake(packet: Handshake) {
-    packet.client.state = packet.nextState;
+    packet.client.storage.put(clientStateBox, packet.nextState);
   }
 
   @EventHandler
   request(packet: Request) {
+    // TODO: Take this information from a server box
     const jsonResponse: Response['jsonResponse'] = {
       version: {
         name: '1.18.1',

@@ -5,13 +5,13 @@ import { SpawnEntity } from '../../packets/packets/client-bound/SpawnEntity';
 import { v3 as uuid } from 'uuid';
 import { SetEntityMetadata } from '../../packets/packets/client-bound/SetEntityMetadata';
 import { ItemEntityMetadata } from '../../data-types/entity-metadata/entities/ItemEntityMetadata';
-import { EntityFeature } from '../../data-types/entity-metadata/EntityMetadata';
+import { EntityVelocity } from '../../packets/packets/client-bound/EntityVelocity';
 
 export class DigListener {
   @EventHandler
   startDigging({ client, x, y, z, status }: PlayerDigging) {
     if (status !== DiggingStatus.STARTED_DIGGING) return;
-    // TODO
+    // TODO: Broadcast digging to nearby players
     client.write(new AcknowledgePlayerDigging(x, y, z, 0, status, true));
   }
 
@@ -29,7 +29,7 @@ export class DigListener {
         z + 0.5,
         0,
         0,
-        100,
+        0,
         0,
         0,
         0,
@@ -37,5 +37,13 @@ export class DigListener {
     );
     const meta = new ItemEntityMetadata(2, 1);
     client.write(new SetEntityMetadata(entityId, meta));
+    client.write(
+      new EntityVelocity(
+        entityId,
+        Math.floor(Math.random() * 1000 - 500),
+        500,
+        Math.floor(Math.random() * 1000 - 500),
+      ),
+    );
   }
 }

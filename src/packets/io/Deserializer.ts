@@ -9,6 +9,7 @@ import { MinecraftClient } from '../../MinecraftClient';
 import { Readable } from 'stream';
 import { ClientState } from '../ClientState';
 import { MAX_PACKET_SIZE } from './constants';
+import { clientStateBox, compressionBox } from '../../box';
 
 const inflate = promisify(zlib.inflate);
 
@@ -35,7 +36,7 @@ export async function* Deserializer(
 
     const packetReader = new BufferReader(data);
 
-    if (client.compression) {
+    if (client.storage.has(compressionBox)) {
       // We are using the compressed format, so include data length and inflate if needed
       const dataLength = packetReader.readVarInt();
       // DataLength != 0 means it was compressed
@@ -45,13 +46,14 @@ export async function* Deserializer(
     }
     const packetId = packetReader.readVarInt();
     const packetData = packetReader.buffer;
+    const clientState = client.storage.getOrThrow(clientStateBox);
 
-    const packetClass = getPacketClass(packetId, PacketDirection.SERVER_BOUND, client.state);
+    const packetClass = getPacketClass(packetId, PacketDirection.SERVER_BOUND, clientState);
 
     if (packetClass === undefined) {
       console.log(
         `Received unknown packet 0x${packetId.toString(16).padStart(2, '0')} (state: ${
-          ClientState[client.state]
+          ClientState[clientState]
         })`,
       );
       continue;

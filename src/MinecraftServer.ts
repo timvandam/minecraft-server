@@ -5,6 +5,7 @@ import { Deserializer } from './packets/io/Deserializer';
 import { MinecraftClient } from './MinecraftClient';
 import { packetListeners } from './listeners/packets';
 import { MinecraftConfig } from './config/MinecraftConfig';
+import { BoxStorage } from './box/BoxStorage';
 
 export type MinecraftServerOptions = {
   port: number;
@@ -17,6 +18,8 @@ export const defaultMinecraftServerOptions: MinecraftServerOptions = {
 };
 
 export class MinecraftServer {
+  public storage = new BoxStorage(); // TODO: store stuff here. also clients
+
   public readonly options: MinecraftServerOptions;
   // TODO: Client list?
   protected readonly server = new net.Server();

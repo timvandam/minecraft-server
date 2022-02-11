@@ -1,12 +1,23 @@
-import { EventHandler } from 'decorator-events';
+import { EventHandler, EventPriority } from 'decorator-events';
 import { ClientSettings } from '../../packets/packets/server-bound/ClientSettings';
 import { UpdateViewDistance } from '../../packets/packets/client-bound/UpdateViewDistance';
+import { playerSettingsBox } from '../../box';
 
 export class PlayerSettingsListener {
-  @EventHandler
-  async clientSettings(packet: ClientSettings) {
-    console.log('Got client settings', packet.viewDistance, 'sending it back');
-    packet.client.renderDistance = packet.viewDistance;
-    packet.client.write(new UpdateViewDistance(packet.viewDistance));
+  @EventHandler({ priority: EventPriority.LOWEST })
+  clientSettings({
+    client,
+    viewDistance,
+    displayedSkinParts,
+    chatMode,
+    allowServerListing,
+  }: ClientSettings) {
+    client.storage.put(playerSettingsBox, {
+      chatMode,
+      allowServerListing,
+      renderDistance: viewDistance,
+      skinParts: displayedSkinParts,
+    });
+    client.write(new UpdateViewDistance(viewDistance));
   }
 }

@@ -1,7 +1,8 @@
+import { Biome } from '../../world/Biome';
+
 /**
  * @see {@link https://wiki.vg/Protocol#Join_Game}
  */
-
 export type DimensionCodec = {
   'minecraft:dimension_type': {
     type: 'minecraft:dimension_type';
@@ -217,7 +218,7 @@ export const dimensionCodec: DimensionCodec = {
     value: [
       {
         name: 'minecraft:ocean',
-        id: 0,
+        id: Biome.OCEAN,
         element: {
           precipitation: 'rain',
           effects: {
@@ -241,7 +242,7 @@ export const dimensionCodec: DimensionCodec = {
       },
       {
         name: 'minecraft:plains',
-        id: 1,
+        id: Biome.PLAINS,
         element: {
           precipitation: 'rain',
           effects: {
@@ -265,7 +266,7 @@ export const dimensionCodec: DimensionCodec = {
       },
       {
         name: 'minecraft:desert',
-        id: 2,
+        id: Biome.DESERT,
         element: {
           precipitation: 'none',
           effects: {
@@ -289,7 +290,7 @@ export const dimensionCodec: DimensionCodec = {
       },
       {
         name: 'minecraft:mountains',
-        id: 3,
+        id: Biome.MOUNTAINS,
         element: {
           precipitation: 'rain',
           effects: {
@@ -313,7 +314,7 @@ export const dimensionCodec: DimensionCodec = {
       },
       {
         name: 'minecraft:forest',
-        id: 4,
+        id: Biome.FOREST,
         element: {
           precipitation: 'rain',
           effects: {
@@ -337,7 +338,7 @@ export const dimensionCodec: DimensionCodec = {
       },
       {
         name: 'minecraft:taiga',
-        id: 5,
+        id: Biome.TAIGA,
         element: {
           precipitation: 'rain',
           effects: {
@@ -361,7 +362,7 @@ export const dimensionCodec: DimensionCodec = {
       },
       {
         name: 'minecraft:swamp',
-        id: 6,
+        id: Biome.SWAMP,
         element: {
           precipitation: 'rain',
           effects: {
@@ -387,7 +388,7 @@ export const dimensionCodec: DimensionCodec = {
       },
       {
         name: 'minecraft:river',
-        id: 7,
+        id: Biome.RIVER,
         element: {
           precipitation: 'rain',
           effects: {
@@ -411,7 +412,7 @@ export const dimensionCodec: DimensionCodec = {
       },
       {
         name: 'minecraft:nether_wastes',
-        id: 8,
+        id: Biome.NETHER_WASTES,
         element: {
           precipitation: 'none',
           effects: {
@@ -446,7 +447,7 @@ export const dimensionCodec: DimensionCodec = {
       },
       {
         name: 'minecraft:the_end',
-        id: 9,
+        id: Biome.THE_END,
         element: {
           precipitation: 'none',
           effects: {
@@ -470,7 +471,7 @@ export const dimensionCodec: DimensionCodec = {
       },
       {
         name: 'minecraft:frozen_ocean',
-        id: 10,
+        id: Biome.FROZEN_OCEAN,
         element: {
           precipitation: 'snow',
           effects: {
@@ -495,7 +496,7 @@ export const dimensionCodec: DimensionCodec = {
       },
       {
         name: 'minecraft:frozen_river',
-        id: 11,
+        id: Biome.FROZEN_RIVER,
         element: {
           precipitation: 'snow',
           effects: {
@@ -519,7 +520,7 @@ export const dimensionCodec: DimensionCodec = {
       },
       {
         name: 'minecraft:snowy_tundra',
-        id: 12,
+        id: Biome.SNOWY_TUNDRA,
         element: {
           precipitation: 'snow',
           effects: {
@@ -543,7 +544,7 @@ export const dimensionCodec: DimensionCodec = {
       },
       {
         name: 'minecraft:snowy_mountains',
-        id: 13,
+        id: Biome.SNOWY_MOUNTAINS,
         element: {
           precipitation: 'snow',
           effects: {
@@ -567,7 +568,7 @@ export const dimensionCodec: DimensionCodec = {
       },
       {
         name: 'minecraft:mushroom_fields',
-        id: 14,
+        id: Biome.MUSHROOM_FIELDS,
         element: {
           precipitation: 'rain',
           effects: {
@@ -591,7 +592,7 @@ export const dimensionCodec: DimensionCodec = {
       },
       {
         name: 'minecraft:mushroom_field_shore',
-        id: 15,
+        id: Biome.MUSHROOM_FIELD_SHORE,
         element: {
           precipitation: 'rain',
           effects: {
@@ -615,7 +616,7 @@ export const dimensionCodec: DimensionCodec = {
       },
       {
         name: 'minecraft:beach',
-        id: 16,
+        id: Biome.BEACH,
         element: {
           precipitation: 'rain',
           effects: {
@@ -639,7 +640,7 @@ export const dimensionCodec: DimensionCodec = {
       },
       {
         name: 'minecraft:desert_hills',
-        id: 17,
+        id: Biome.DESERT_HILLS,
         element: {
           precipitation: 'none',
           effects: {
@@ -663,7 +664,7 @@ export const dimensionCodec: DimensionCodec = {
       },
       {
         name: 'minecraft:wooded_hills',
-        id: 18,
+        id: Biome.WOODED_HILLS,
         element: {
           precipitation: 'rain',
           effects: {
@@ -687,7 +688,7 @@ export const dimensionCodec: DimensionCodec = {
       },
       {
         name: 'minecraft:taiga_hills',
-        id: 19,
+        id: Biome.TAIGA_HILLS,
         element: {
           precipitation: 'rain',
           effects: {
@@ -711,7 +712,7 @@ export const dimensionCodec: DimensionCodec = {
       },
       {
         name: 'minecraft:mountain_edge',
-        id: 20,
+        id: Biome.MOUNTAIN_EDGE,
         element: {
           precipitation: 'rain',
           effects: {
@@ -735,7 +736,7 @@ export const dimensionCodec: DimensionCodec = {
       },
       {
         name: 'minecraft:jungle',
-        id: 21,
+        id: Biome.JUNGLE,
         element: {
           precipitation: 'rain',
           effects: {
@@ -759,7 +760,7 @@ export const dimensionCodec: DimensionCodec = {
       },
       {
         name: 'minecraft:jungle_hills',
-        id: 22,
+        id: Biome.JUNGLE_HILLS,
         element: {
           precipitation: 'rain',
           effects: {
@@ -783,7 +784,7 @@ export const dimensionCodec: DimensionCodec = {
       },
       {
         name: 'minecraft:jungle_edge',
-        id: 23,
+        id: Biome.JUNGLE_EDGE,
         element: {
           precipitation: 'rain',
           effects: {
@@ -807,7 +808,7 @@ export const dimensionCodec: DimensionCodec = {
       },
       {
         name: 'minecraft:deep_ocean',
-        id: 24,
+        id: Biome.DEEP_OCEAN,
         element: {
           precipitation: 'rain',
           effects: {
@@ -831,7 +832,7 @@ export const dimensionCodec: DimensionCodec = {
       },
       {
         name: 'minecraft:stone_shore',
-        id: 25,
+        id: Biome.STONE_SHORE,
         element: {
           precipitation: 'rain',
           effects: {
@@ -855,7 +856,7 @@ export const dimensionCodec: DimensionCodec = {
       },
       {
         name: 'minecraft:snowy_beach',
-        id: 26,
+        id: Biome.SNOWY_BEACH,
         element: {
           precipitation: 'snow',
           effects: {
@@ -879,7 +880,7 @@ export const dimensionCodec: DimensionCodec = {
       },
       {
         name: 'minecraft:birch_forest',
-        id: 27,
+        id: Biome.BIRCH_FOREST,
         element: {
           precipitation: 'rain',
           effects: {
@@ -903,7 +904,7 @@ export const dimensionCodec: DimensionCodec = {
       },
       {
         name: 'minecraft:birch_forest_hills',
-        id: 28,
+        id: Biome.BIRCH_FOREST_HILLS,
         element: {
           precipitation: 'rain',
           effects: {
@@ -927,7 +928,7 @@ export const dimensionCodec: DimensionCodec = {
       },
       {
         name: 'minecraft:dark_forest',
-        id: 29,
+        id: Biome.DARK_FOREST,
         element: {
           precipitation: 'rain',
           effects: {
@@ -952,7 +953,7 @@ export const dimensionCodec: DimensionCodec = {
       },
       {
         name: 'minecraft:snowy_taiga',
-        id: 30,
+        id: Biome.SNOWY_TAIGA,
         element: {
           precipitation: 'snow',
           effects: {
@@ -976,7 +977,7 @@ export const dimensionCodec: DimensionCodec = {
       },
       {
         name: 'minecraft:snowy_taiga_hills',
-        id: 31,
+        id: Biome.SNOWY_TAIGA_HILLS,
         element: {
           precipitation: 'snow',
           effects: {
@@ -1000,7 +1001,7 @@ export const dimensionCodec: DimensionCodec = {
       },
       {
         name: 'minecraft:giant_tree_taiga',
-        id: 32,
+        id: Biome.GIANT_TREE_TAIGA,
         element: {
           precipitation: 'rain',
           effects: {
@@ -1024,7 +1025,7 @@ export const dimensionCodec: DimensionCodec = {
       },
       {
         name: 'minecraft:giant_tree_taiga_hills',
-        id: 33,
+        id: Biome.GIANT_TREE_TAIGA_HILLS,
         element: {
           precipitation: 'rain',
           effects: {
@@ -1048,7 +1049,7 @@ export const dimensionCodec: DimensionCodec = {
       },
       {
         name: 'minecraft:wooded_mountains',
-        id: 34,
+        id: Biome.WOODED_MOUNTAINS,
         element: {
           precipitation: 'rain',
           effects: {
@@ -1072,7 +1073,7 @@ export const dimensionCodec: DimensionCodec = {
       },
       {
         name: 'minecraft:savanna',
-        id: 35,
+        id: Biome.SAVANNA,
         element: {
           precipitation: 'none',
           effects: {
@@ -1096,7 +1097,7 @@ export const dimensionCodec: DimensionCodec = {
       },
       {
         name: 'minecraft:savanna_plateau',
-        id: 36,
+        id: Biome.SAVANNA_PLATEAU,
         element: {
           precipitation: 'none',
           effects: {
@@ -1120,7 +1121,7 @@ export const dimensionCodec: DimensionCodec = {
       },
       {
         name: 'minecraft:badlands',
-        id: 37,
+        id: Biome.BADLANDS,
         element: {
           precipitation: 'none',
           effects: {
@@ -1146,7 +1147,7 @@ export const dimensionCodec: DimensionCodec = {
       },
       {
         name: 'minecraft:wooded_badlands_plateau',
-        id: 38,
+        id: Biome.WOODED_BADLANDS_PLATEAU,
         element: {
           precipitation: 'none',
           effects: {
@@ -1172,7 +1173,7 @@ export const dimensionCodec: DimensionCodec = {
       },
       {
         name: 'minecraft:badlands_plateau',
-        id: 39,
+        id: Biome.BADLANDS_PLATEAU,
         element: {
           precipitation: 'none',
           effects: {
@@ -1198,7 +1199,7 @@ export const dimensionCodec: DimensionCodec = {
       },
       {
         name: 'minecraft:small_end_islands',
-        id: 40,
+        id: Biome.SMALL_END_ISLANDS,
         element: {
           precipitation: 'none',
           effects: {
@@ -1222,7 +1223,7 @@ export const dimensionCodec: DimensionCodec = {
       },
       {
         name: 'minecraft:end_midlands',
-        id: 41,
+        id: Biome.END_MIDLANDS,
         element: {
           precipitation: 'none',
           effects: {
@@ -1246,7 +1247,7 @@ export const dimensionCodec: DimensionCodec = {
       },
       {
         name: 'minecraft:end_highlands',
-        id: 42,
+        id: Biome.END_HIGHLANDS,
         element: {
           precipitation: 'none',
           effects: {
@@ -1270,7 +1271,7 @@ export const dimensionCodec: DimensionCodec = {
       },
       {
         name: 'minecraft:end_barrens',
-        id: 43,
+        id: Biome.END_BARRENS,
         element: {
           precipitation: 'none',
           effects: {
@@ -1294,7 +1295,7 @@ export const dimensionCodec: DimensionCodec = {
       },
       {
         name: 'minecraft:warm_ocean',
-        id: 44,
+        id: Biome.WARM_OCEAN,
         element: {
           precipitation: 'rain',
           effects: {
@@ -1318,7 +1319,7 @@ export const dimensionCodec: DimensionCodec = {
       },
       {
         name: 'minecraft:lukewarm_ocean',
-        id: 45,
+        id: Biome.LUKEWARM_OCEAN,
         element: {
           precipitation: 'rain',
           effects: {
@@ -1342,7 +1343,7 @@ export const dimensionCodec: DimensionCodec = {
       },
       {
         name: 'minecraft:cold_ocean',
-        id: 46,
+        id: Biome.COLD_OCEAN,
         element: {
           precipitation: 'rain',
           effects: {
@@ -1366,7 +1367,7 @@ export const dimensionCodec: DimensionCodec = {
       },
       {
         name: 'minecraft:deep_warm_ocean',
-        id: 47,
+        id: Biome.DEEP_WARM_OCEAN,
         element: {
           precipitation: 'rain',
           effects: {
@@ -1390,7 +1391,7 @@ export const dimensionCodec: DimensionCodec = {
       },
       {
         name: 'minecraft:deep_lukewarm_ocean',
-        id: 48,
+        id: Biome.DEEP_LUKEWARM_OCEAN,
         element: {
           precipitation: 'rain',
           effects: {
@@ -1414,7 +1415,7 @@ export const dimensionCodec: DimensionCodec = {
       },
       {
         name: 'minecraft:deep_cold_ocean',
-        id: 49,
+        id: Biome.DEEP_COLD_OCEAN,
         element: {
           precipitation: 'rain',
           effects: {
@@ -1438,7 +1439,7 @@ export const dimensionCodec: DimensionCodec = {
       },
       {
         name: 'minecraft:deep_frozen_ocean',
-        id: 50,
+        id: Biome.DEEP_FROZEN_OCEAN,
         element: {
           precipitation: 'rain',
           effects: {
@@ -1463,7 +1464,7 @@ export const dimensionCodec: DimensionCodec = {
       },
       {
         name: 'minecraft:the_void',
-        id: 127,
+        id: Biome.THE_VOID,
         element: {
           precipitation: 'none',
           effects: {
@@ -1487,7 +1488,7 @@ export const dimensionCodec: DimensionCodec = {
       },
       {
         name: 'minecraft:sunflower_plains',
-        id: 129,
+        id: Biome.SUNFLOWER_PLAINS,
         element: {
           precipitation: 'rain',
           effects: {
@@ -1511,7 +1512,7 @@ export const dimensionCodec: DimensionCodec = {
       },
       {
         name: 'minecraft:desert_lakes',
-        id: 130,
+        id: Biome.DESERT_LAKES,
         element: {
           precipitation: 'none',
           effects: {
@@ -1535,7 +1536,7 @@ export const dimensionCodec: DimensionCodec = {
       },
       {
         name: 'minecraft:gravelly_mountains',
-        id: 131,
+        id: Biome.GRAVELLY_MOUNTAINS,
         element: {
           precipitation: 'rain',
           effects: {
@@ -1559,7 +1560,7 @@ export const dimensionCodec: DimensionCodec = {
       },
       {
         name: 'minecraft:flower_forest',
-        id: 132,
+        id: Biome.FLOWER_FOREST,
         element: {
           precipitation: 'rain',
           effects: {
@@ -1583,7 +1584,7 @@ export const dimensionCodec: DimensionCodec = {
       },
       {
         name: 'minecraft:taiga_mountains',
-        id: 133,
+        id: Biome.TAIGA_MOUNTAINS,
         element: {
           precipitation: 'rain',
           effects: {
@@ -1607,7 +1608,7 @@ export const dimensionCodec: DimensionCodec = {
       },
       {
         name: 'minecraft:swamp_hills',
-        id: 134,
+        id: Biome.SWAMP_HILLS,
         element: {
           precipitation: 'rain',
           effects: {
@@ -1633,7 +1634,7 @@ export const dimensionCodec: DimensionCodec = {
       },
       {
         name: 'minecraft:ice_spikes',
-        id: 140,
+        id: Biome.ICE_SPIKES,
         element: {
           precipitation: 'snow',
           effects: {
@@ -1657,7 +1658,7 @@ export const dimensionCodec: DimensionCodec = {
       },
       {
         name: 'minecraft:modified_jungle',
-        id: 149,
+        id: Biome.MODIFIED_JUNGLE,
         element: {
           precipitation: 'rain',
           effects: {
@@ -1681,7 +1682,7 @@ export const dimensionCodec: DimensionCodec = {
       },
       {
         name: 'minecraft:modified_jungle_edge',
-        id: 151,
+        id: Biome.MODIFIED_JUNGLE_EDGE,
         element: {
           precipitation: 'rain',
           effects: {
@@ -1705,7 +1706,7 @@ export const dimensionCodec: DimensionCodec = {
       },
       {
         name: 'minecraft:tall_birch_forest',
-        id: 155,
+        id: Biome.TALL_BIRCH_FOREST,
         element: {
           precipitation: 'rain',
           effects: {
@@ -1729,7 +1730,7 @@ export const dimensionCodec: DimensionCodec = {
       },
       {
         name: 'minecraft:tall_birch_hills',
-        id: 156,
+        id: Biome.TALL_BIRCH_HILLS,
         element: {
           precipitation: 'rain',
           effects: {
@@ -1753,7 +1754,7 @@ export const dimensionCodec: DimensionCodec = {
       },
       {
         name: 'minecraft:dark_forest_hills',
-        id: 157,
+        id: Biome.DARK_FOREST_HILLS,
         element: {
           precipitation: 'rain',
           effects: {
@@ -1778,7 +1779,7 @@ export const dimensionCodec: DimensionCodec = {
       },
       {
         name: 'minecraft:snowy_taiga_mountains',
-        id: 158,
+        id: Biome.SNOWY_TAIGA_MOUNTAINS,
         element: {
           precipitation: 'snow',
           effects: {
@@ -1802,7 +1803,7 @@ export const dimensionCodec: DimensionCodec = {
       },
       {
         name: 'minecraft:giant_spruce_taiga',
-        id: 160,
+        id: Biome.GIANT_SPRUCE_TAIGA,
         element: {
           precipitation: 'rain',
           effects: {
@@ -1826,7 +1827,7 @@ export const dimensionCodec: DimensionCodec = {
       },
       {
         name: 'minecraft:giant_spruce_taiga_hills',
-        id: 161,
+        id: Biome.GIANT_SPRUCE_TAIGA_HILLS,
         element: {
           precipitation: 'rain',
           effects: {
@@ -1850,7 +1851,7 @@ export const dimensionCodec: DimensionCodec = {
       },
       {
         name: 'minecraft:modified_gravelly_mountains',
-        id: 162,
+        id: Biome.MODIFIED_GRAVELLY_MOUNTAINS,
         element: {
           precipitation: 'rain',
           effects: {
@@ -1874,7 +1875,7 @@ export const dimensionCodec: DimensionCodec = {
       },
       {
         name: 'minecraft:shattered_savanna',
-        id: 163,
+        id: Biome.SHATTERED_SAVANNA,
         element: {
           precipitation: 'none',
           effects: {
@@ -1898,7 +1899,7 @@ export const dimensionCodec: DimensionCodec = {
       },
       {
         name: 'minecraft:shattered_savanna_plateau',
-        id: 164,
+        id: Biome.SHATTERED_SAVANNA_PLATEAU,
         element: {
           precipitation: 'none',
           effects: {
@@ -1922,7 +1923,7 @@ export const dimensionCodec: DimensionCodec = {
       },
       {
         name: 'minecraft:eroded_badlands',
-        id: 165,
+        id: Biome.ERODED_BADLANDS,
         element: {
           precipitation: 'none',
           effects: {
@@ -1948,7 +1949,7 @@ export const dimensionCodec: DimensionCodec = {
       },
       {
         name: 'minecraft:modified_wooded_badlands_plateau',
-        id: 166,
+        id: Biome.MODIFIED_WOODED_BADLANDS_PLATEAU,
         element: {
           precipitation: 'none',
           effects: {
@@ -1974,7 +1975,7 @@ export const dimensionCodec: DimensionCodec = {
       },
       {
         name: 'minecraft:modified_badlands_plateau',
-        id: 167,
+        id: Biome.MODIFIED_BADLANDS_PLATEAU,
         element: {
           precipitation: 'none',
           effects: {
@@ -2000,7 +2001,7 @@ export const dimensionCodec: DimensionCodec = {
       },
       {
         name: 'minecraft:bamboo_jungle',
-        id: 168,
+        id: Biome.BAMBOO_JUNGLE,
         element: {
           precipitation: 'rain',
           effects: {
@@ -2024,7 +2025,7 @@ export const dimensionCodec: DimensionCodec = {
       },
       {
         name: 'minecraft:bamboo_jungle_hills',
-        id: 169,
+        id: Biome.BAMBOO_JUNGLE_HILLS,
         element: {
           precipitation: 'rain',
           effects: {
@@ -2048,7 +2049,7 @@ export const dimensionCodec: DimensionCodec = {
       },
       {
         name: 'minecraft:soul_sand_valley',
-        id: 170,
+        id: Biome.SOUL_SAND_VALLEY,
         element: {
           precipitation: 'none',
           effects: {
@@ -2089,7 +2090,7 @@ export const dimensionCodec: DimensionCodec = {
       },
       {
         name: 'minecraft:crimson_forest',
-        id: 171,
+        id: Biome.CRIMSON_FOREST,
         element: {
           precipitation: 'none',
           effects: {
@@ -2130,7 +2131,7 @@ export const dimensionCodec: DimensionCodec = {
       },
       {
         name: 'minecraft:warped_forest',
-        id: 172,
+        id: Biome.WARPED_FOREST,
         element: {
           precipitation: 'none',
           effects: {
@@ -2171,7 +2172,7 @@ export const dimensionCodec: DimensionCodec = {
       },
       {
         name: 'minecraft:basalt_deltas',
-        id: 173,
+        id: Biome.BASALT_DELTAS,
         element: {
           precipitation: 'none',
           effects: {

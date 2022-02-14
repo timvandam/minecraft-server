@@ -7,7 +7,12 @@ import { UpdateViewPosition } from '../../packets/packets/client-bound/UpdateVie
 import { MinecraftClient } from '../../MinecraftClient';
 import { LoginStart } from '../../packets/packets/server-bound/LoginStart';
 import { PlayerPositionAndLook } from '../../packets/packets/client-bound/PlayerPositionAndLook';
-import { positionBox } from '../../box';
+import { playerEntityIdBox, positionBox, uuidBox } from '../../box/ClientBoxes';
+import { clientsBox } from '../../box/ServerBoxes';
+import { SpawnPlayer } from '../../packets/packets/client-bound/SpawnPlayer';
+import { PlayerEntityMetadata } from '../../data-types/entity-metadata/entities/PlayerEntityMetadata';
+import { SetEntityMetadata } from '../../packets/packets/client-bound/SetEntityMetadata';
+import { Hand } from '../../packets/packets/server-bound/ClientSettings';
 
 export type Position = {
   x: number;
@@ -38,17 +43,59 @@ export class PlayerMovementListener {
   }
 
   @EventHandler({ priority: EventPriority.HIGHEST })
-  spawnPlayer(packet: LoginStart) {
+  spawnPlayer({ client }: LoginStart) {
     const x = 10;
     const y = 25;
     const z = 10;
     const yaw = 0;
     const pitch = 0;
     const onGround = true;
-    packet.client.storage.put(positionBox, { x, y, z, yaw, pitch, onGround });
-    packet.client.write(
+    client.storage.put(positionBox, { x, y, z, yaw, pitch, onGround });
+    client.write(
       new PlayerPositionAndLook(x, y, z, yaw, pitch, false, false, false, false, false, 0, false),
     );
+
+    // TODO: Do this elsewhere
+    for (const otherClient of client.server.storage.getOrThrow(clientsBox)) {
+      if (otherClient === client) continue;
+      console.log('other player!!', otherClient);
+
+      const otherEntityId = otherClient.storage.getOrThrow(playerEntityIdBox);
+      const otherUuid = otherClient.storage.getOrThrow(uuidBox);
+      const otherPosition = otherClient.storage.getOrThrow(positionBox);
+
+      client.write(
+        new SpawnPlayer(
+          otherEntityId,
+          otherUuid,
+          otherPosition.x,
+          otherPosition.y,
+          otherPosition.z,
+          otherPosition.yaw,
+          otherPosition.pitch,
+        ),
+      );
+      client.write(
+        new SetEntityMetadata(otherEntityId, new PlayerEntityMetadata(0, 0, 0, Hand.LEFT)),
+      );
+      otherClient.write(
+        new SpawnPlayer(
+          client.storage.getOrThrow(playerEntityIdBox),
+          client.storage.getOrThrow(uuidBox),
+          x,
+          y,
+          z,
+          yaw,
+          pitch,
+        ),
+      );
+      otherClient.write(
+        new SetEntityMetadata(
+          client.storage.getOrThrow(playerEntityIdBox),
+          new PlayerEntityMetadata(0, 0, 0, Hand.LEFT),
+        ),
+      );
+    }
   }
 
   @EventHandler

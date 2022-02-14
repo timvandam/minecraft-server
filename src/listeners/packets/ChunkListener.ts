@@ -1,7 +1,7 @@
 import { EventHandler, EventPriority } from 'decorator-events';
 import { LoginStart } from '../../packets/packets/server-bound/LoginStart';
 import { ChunkDataAndUpdateLight } from '../../packets/packets/client-bound/ChunkDataAndUpdateLight';
-import { loadedChunksBox, playerSettingsBox, positionBox } from '../../box';
+import { loadedChunksBox, playerSettingsBox, positionBox } from '../../box/ClientBoxes';
 import { MinecraftClient } from '../../MinecraftClient';
 import { UnloadChunk } from '../../packets/packets/client-bound/UnloadChunk';
 import { ClientSettings } from '../../packets/packets/server-bound/ClientSettings';

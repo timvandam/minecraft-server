@@ -5,7 +5,7 @@ import { Ping } from '../../packets/packets/server-bound/Ping';
 import { Response } from '../../packets/packets/client-bound/Response';
 import { Pong } from '../../packets/packets/client-bound/Pong';
 import { chat } from '../../data-types/Chat';
-import { clientStateBox } from '../../box';
+import { clientStateBox } from '../../box/ClientBoxes';
 
 export class StatusListener {
   @EventHandler

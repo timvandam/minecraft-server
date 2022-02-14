@@ -6,6 +6,7 @@ import { MinecraftClient } from './MinecraftClient';
 import { packetListeners } from './listeners/packets';
 import { MinecraftConfig } from './config/MinecraftConfig';
 import { BoxStorage } from './box/BoxStorage';
+import { clientsBox } from './box/ServerBoxes';
 
 export type MinecraftServerOptions = {
   port: number;
@@ -34,6 +35,7 @@ export class MinecraftServer {
     this.options = { ...defaultMinecraftServerOptions, ...options };
     this.eventBus.register(this.options.listeners);
     this.packetBus.register(...packetListeners);
+    this.storage.put(clientsBox, new Set<MinecraftClient>());
 
     this.server.on('connection', async (socket) => {
       socket.on('error', (error) => {
@@ -41,6 +43,10 @@ export class MinecraftServer {
       });
 
       const client = new MinecraftClient(this, socket, this.packetBus);
+      this.storage.getOrThrow(clientsBox).add(client);
+      socket.on('end', () => {
+        this.storage.getOrThrow(clientsBox).delete(client);
+      });
     });
   }
 

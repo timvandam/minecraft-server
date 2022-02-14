@@ -9,7 +9,7 @@ import { MinecraftClient } from '../../MinecraftClient';
 import { Readable } from 'stream';
 import { ClientState } from '../ClientState';
 import { MAX_PACKET_SIZE } from './constants';
-import { clientStateBox, compressionBox } from '../../box';
+import { clientStateBox, compressionBox } from '../../box/ClientBoxes';
 
 const inflate = promisify(zlib.inflate);
 

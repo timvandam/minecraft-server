@@ -6,7 +6,18 @@ import { ClientState } from '../../packets/ClientState';
 import { v3 as uuid } from 'uuid';
 import { Gamemode, JoinGame } from '../../packets/packets/client-bound/JoinGame';
 import { ClientBoundPluginMessage } from '../../packets/packets/client-bound/ClientBoundPluginMessage';
-import { clientStateBox, compressionBox, uuidBox } from '../../box';
+import {
+  clientStateBox,
+  compressionBox,
+  playerEntityIdBox,
+  positionBox,
+  uuidBox,
+} from '../../box/ClientBoxes';
+import { clientsBox } from '../../box/ServerBoxes';
+import { SpawnPlayer } from '../../packets/packets/client-bound/SpawnPlayer';
+
+// TODO: Fix
+let entityId = 0;
 
 export class LoginListener {
   @EventHandler({ priority: EventPriority.LOWEST })
@@ -22,9 +33,9 @@ export class LoginListener {
 
     await client.write(
       new JoinGame(
-        227,
+        entityId,
         false,
-        Gamemode.CREATIVE,
+        Gamemode.SURVIVAL,
         undefined,
         client.server.config.dimensionCodec['minecraft:dimension_type'].value.map(
           ({ name }) => name,
@@ -41,6 +52,8 @@ export class LoginListener {
         false,
       ),
     );
+    client.storage.put(playerEntityIdBox, entityId);
+    entityId++;
 
     await client.write(
       new ClientBoundPluginMessage(

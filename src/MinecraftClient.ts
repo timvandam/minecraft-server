@@ -9,7 +9,7 @@ import * as Buffer from 'buffer';
 import { MinecraftServer } from './MinecraftServer';
 import { DimensionTypeRegistryEntry } from './config/data/DimensionCodec';
 import { BoxStorage } from './box/BoxStorage';
-import { clientStateBox } from './box';
+import { clientStateBox } from './box/ClientBoxes';
 
 export class MinecraftClient {
   public storage = new BoxStorage();

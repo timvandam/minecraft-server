@@ -5,7 +5,7 @@ import { chat } from '../../data-types/Chat';
 import { LoginStart } from '../../packets/packets/server-bound/LoginStart';
 import { MinecraftClient } from '../../MinecraftClient';
 import { DisconnectPlay } from '../../packets/packets/client-bound/DisconnectPlay';
-import { keepAliveBox } from '../../box';
+import { keepAliveBox } from '../../box/ClientBoxes';
 
 export class TimeoutListener {
   protected sendKeepAlive(client: MinecraftClient) {

@@ -35,7 +35,7 @@ export class DigListener {
         0,
       ),
     );
-    const meta = new ItemEntityMetadata(2, 1);
+    const meta = new ItemEntityMetadata(15, 1);
     client.write(new SetEntityMetadata(entityId, meta));
     client.write(
       new EntityVelocity(

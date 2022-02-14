@@ -1,7 +1,7 @@
 import { EventHandler, EventPriority } from 'decorator-events';
 import { ClientSettings } from '../../packets/packets/server-bound/ClientSettings';
 import { UpdateViewDistance } from '../../packets/packets/client-bound/UpdateViewDistance';
-import { playerSettingsBox } from '../../box';
+import { playerSettingsBox } from '../../box/ClientBoxes';
 
 export class PlayerSettingsListener {
   @EventHandler({ priority: EventPriority.LOWEST })

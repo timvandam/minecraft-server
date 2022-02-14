@@ -22,3 +22,5 @@ export const clientStateBox = Box<ClientState>(Symbol('ClientState'));
 export const compressionBox = Box<{ threshold: number }>(Symbol('Compression'));
 
 export const uuidBox = Box<Buffer>(Symbol('PlayerUUID'));
+
+export const playerEntityIdBox = Box<number>(Symbol('PlayerEntityId'));

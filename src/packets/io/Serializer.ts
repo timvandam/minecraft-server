@@ -4,7 +4,7 @@ import * as zlib from 'zlib';
 import { promisify } from 'util';
 import { MinecraftClient } from '../../MinecraftClient';
 import { MAX_PACKET_SIZE } from './constants';
-import { compressionBox } from '../../box';
+import { compressionBox } from '../../box/ClientBoxes';
 
 const deflate = promisify(zlib.deflate);
 

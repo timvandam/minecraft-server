@@ -33,7 +33,8 @@ export class EntityPositionAndRotation extends createPacket(
       .writeShort(packet.deltaY)
       .writeShort(packet.deltaZ)
       .writeAngle(packet.yaw) // TODO: writeYaw, writeAngle if needed
-      .writeAngle(packet.pitch);
+      .writeAngle(packet.pitch)
+      .writeBoolean(packet.onGround);
     return writer.getBuffer();
   }
 }

@@ -23,6 +23,7 @@ export class PlayerEntityMetadata extends LivingEntityMetadata {
       [EntityFieldType.VARINT, this.score],
       [EntityFieldType.BYTE, this.displayedSkinParts],
       [EntityFieldType.BYTE, this.mainHand],
+      // TODO: Refactor all of the entity stuff. Don't require these fields
       [EntityFieldType.NBT, this.leftShoulderEntityData],
       [EntityFieldType.NBT, this.rightShoulderEntityData],
     ];

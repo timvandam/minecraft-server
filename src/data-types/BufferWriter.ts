@@ -145,7 +145,7 @@ export class BufferWriter {
    * Writes an angle as a byte
    */
   writeAngle(num: number) {
-    return this.writeUByte(Math.floor((((360 + num) % 360) / 360) * 256));
+    return this.writeUByte(Math.floor((((720 + num) % 360) / 360) * 256));
   }
 
   writeUuid(uuid: Buffer) {

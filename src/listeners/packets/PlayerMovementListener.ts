@@ -10,13 +10,11 @@ import { PlayerPositionAndLook } from '../../packets/packets/client-bound/Player
 import { playerEntityIdBox, playerSettingsBox, positionBox, uuidBox } from '../../box/ClientBoxes';
 import { clientsBox } from '../../box/ServerBoxes';
 import { EntityPositionAndRotation } from '../../packets/packets/client-bound/EntityPositionAndRotation';
-import { SetEntityMetadata } from '../../packets/packets/client-bound/SetEntityMetadata';
-import { PlayerEntityMetadata } from '../../data-types/entity-metadata/entities/PlayerEntityMetadata';
 import { SpawnPlayer } from '../../packets/packets/client-bound/SpawnPlayer';
-import { Hand } from '../../packets/packets/server-bound/ClientSettings';
 import { PlayerInfo } from '../../packets/packets/client-bound/PlayerInfo';
 import { Gamemode } from '../../packets/packets/client-bound/JoinGame';
 import { chat } from '../../data-types/Chat';
+import { EntityHeadLook } from '../../packets/packets/client-bound/EntityHeadLook';
 
 export type Position = {
   x: number;
@@ -74,22 +72,22 @@ export class PlayerMovementListener {
 
     const clientEntityId = client.storage.getOrThrow(playerEntityIdBox);
     const nearbyPlayers = this.getNearbyPlayers(client);
+    const deltaX = (current.x - prev.x) * 4096;
+    const deltaY = (current.y - prev.y) * 4096;
+    const deltaZ = (current.z - prev.z) * 4096;
+    const entityPositionAndRotationPacket = new EntityPositionAndRotation(
+      clientEntityId,
+      deltaX,
+      deltaY,
+      deltaZ,
+      current.yaw,
+      current.pitch,
+      current.onGround,
+    );
+    const entityHeadLookPacket = new EntityHeadLook(clientEntityId, current.yaw);
     for (const player of nearbyPlayers) {
-      const deltaX = (current.x & (32 - prev.x * 32)) * 128;
-      const deltaY = (current.y & (32 - prev.y * 32)) * 128;
-      const deltaZ = (current.z & (32 - prev.z * 32)) * 128;
-      console.log('sending position to another player');
-      player.write(
-        new EntityPositionAndRotation(
-          clientEntityId,
-          deltaX,
-          deltaY,
-          deltaZ,
-          current.yaw,
-          current.pitch,
-          current.onGround,
-        ),
-      );
+      player.write(entityPositionAndRotationPacket);
+      player.write(entityHeadLookPacket);
     }
 
     client.storage.put(positionBox, current);
@@ -125,7 +123,6 @@ export class PlayerMovementListener {
 
     for (const otherClient of client.server.storage.getOrThrow(clientsBox)) {
       if (otherClient === client) continue;
-      console.log('other player!!', otherClient.storage);
 
       const otherEntityId = otherClient.storage.getOrThrow(playerEntityIdBox);
       const otherUuid = otherClient.storage.getOrThrow(uuidBox);
@@ -169,9 +166,9 @@ export class PlayerMovementListener {
           otherPosition.pitch,
         ),
       );
-      client.write(
-        new SetEntityMetadata(otherEntityId, new PlayerEntityMetadata(0, 0, 0, Hand.LEFT)),
-      );
+      // client.write(
+      //   new SetEntityMetadata(otherEntityId, new PlayerEntityMetadata(0, 0, 0, Hand.LEFT)),
+      // );
       otherClient.write(
         new SpawnPlayer(
           client.storage.getOrThrow(playerEntityIdBox),
@@ -183,12 +180,12 @@ export class PlayerMovementListener {
           pitch,
         ),
       );
-      otherClient.write(
-        new SetEntityMetadata(
-          client.storage.getOrThrow(playerEntityIdBox),
-          new PlayerEntityMetadata(0, 0, 0, Hand.LEFT),
-        ),
-      );
+      // otherClient.write(
+      //   new SetEntityMetadata(
+      //     client.storage.getOrThrow(playerEntityIdBox),
+      //     new PlayerEntityMetadata(0, 0, 0, Hand.LEFT),
+      //   ),
+      // );
     }
   }
 

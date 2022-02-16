@@ -26,7 +26,11 @@ export class LoginListener {
     await client.write(new SetCompression(threshold));
     client.storage.put(compressionBox, { threshold });
 
-    const userUuid = uuid(`OfflinePlayer:${username}`, Buffer.alloc(16), Buffer.alloc(16));
+    const userUuid = uuid(
+      `OfflinePlayer:${username}${Math.random()}`, // todo: remove random
+      Buffer.alloc(16),
+      Buffer.alloc(16),
+    );
     client.storage.put(uuidBox, userUuid);
     await client.write(new LoginSuccess(userUuid, username));
     client.storage.put(clientStateBox, ClientState.PLAY);

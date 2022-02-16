@@ -1,6 +1,6 @@
-import { Packet, PacketClass } from './createPacket';
 import { PacketDirection } from './PacketDirection';
 import { ClientState } from '../ClientState';
+import { Packet, PacketClass } from './createPacket';
 
 export type ServerBoundPacketClass = PacketClass<PacketDirection.SERVER_BOUND> & {
   fromBuffer(buffer: Buffer): Packet;
@@ -10,7 +10,10 @@ export type ClientBoundPacketClass = PacketClass<PacketDirection.CLIENT_BOUND> &
   toBuffer(packet: Packet): Buffer;
 };
 
-type RegisterPacketClass = ServerBoundPacketClass | ClientBoundPacketClass;
+/**
+ * Omit constructor because it can be protected/private if need be
+ */
+type RegisterPacketClass = Omit<ServerBoundPacketClass | ClientBoundPacketClass, 'constructor'>;
 
 type Registry = {
   [packetId: number]: {
@@ -52,6 +55,6 @@ export function getPacketClass(
   packetId: number,
   direction: PacketDirection,
   state: ClientState,
-): PacketClass | undefined {
+): RegisterPacketClass | undefined {
   return registry[packetId]?.[direction]?.[state];
 }

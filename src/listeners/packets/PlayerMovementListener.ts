@@ -14,6 +14,9 @@ import { SetEntityMetadata } from '../../packets/packets/client-bound/SetEntityM
 import { PlayerEntityMetadata } from '../../data-types/entity-metadata/entities/PlayerEntityMetadata';
 import { SpawnPlayer } from '../../packets/packets/client-bound/SpawnPlayer';
 import { Hand } from '../../packets/packets/server-bound/ClientSettings';
+import { PlayerInfo } from '../../packets/packets/client-bound/PlayerInfo';
+import { Gamemode } from '../../packets/packets/client-bound/JoinGame';
+import { chat } from '../../data-types/Chat';
 
 export type Position = {
   x: number;
@@ -34,6 +37,10 @@ export class PlayerMovementListener {
    * Checks whether player2 is in the range of player1 (thus uses plauer1's render distance
    */
   protected playerIsInRange(player1: MinecraftClient, player2: MinecraftClient) {
+    if (!player1.storage.has(playerSettingsBox)) {
+      console.log('this duded oesnt have settings', player1.storage);
+      return false;
+    }
     const { renderDistance } = player1.storage.getOrThrow(playerSettingsBox);
     const [player1ChunkX, player1ChunkZ] = this.getChunkCoords(player1);
     const [player2ChunkX, player2ChunkZ] = this.getChunkCoords(player2);
@@ -71,6 +78,7 @@ export class PlayerMovementListener {
       const deltaX = (current.x & (32 - prev.x * 32)) * 128;
       const deltaY = (current.y & (32 - prev.y * 32)) * 128;
       const deltaZ = (current.z & (32 - prev.z * 32)) * 128;
+      console.log('sending position to another player');
       player.write(
         new EntityPositionAndRotation(
           clientEntityId,
@@ -88,7 +96,7 @@ export class PlayerMovementListener {
   }
 
   @EventHandler({ priority: EventPriority.HIGHEST })
-  spawnPlayer({ client }: LoginStart) {
+  async spawnPlayer({ client }: LoginStart) {
     const x = 10;
     const y = 25;
     const z = 10;
@@ -100,7 +108,21 @@ export class PlayerMovementListener {
       new PlayerPositionAndLook(x, y, z, yaw, pitch, false, false, false, false, false, 0, false),
     );
 
+    client.write(
+      PlayerInfo.addPlayers([
+        {
+          name: 'you',
+          displayName: chat.red`you`,
+          ping: 0,
+          gamemode: Gamemode.SURVIVAL,
+          properties: {},
+          uuid: client.storage.getOrThrow(uuidBox),
+        },
+      ]),
+    );
+
     // TODO: Do this elsewhere
+
     for (const otherClient of client.server.storage.getOrThrow(clientsBox)) {
       if (otherClient === client) continue;
       console.log('other player!!', otherClient.storage);
@@ -108,6 +130,33 @@ export class PlayerMovementListener {
       const otherEntityId = otherClient.storage.getOrThrow(playerEntityIdBox);
       const otherUuid = otherClient.storage.getOrThrow(uuidBox);
       const otherPosition = otherClient.storage.getOrThrow(positionBox);
+
+      const properties = {};
+      client.write(
+        PlayerInfo.addPlayers([
+          {
+            name: 'other_player',
+            displayName: 'other_player',
+            ping: 0,
+            gamemode: Gamemode.SURVIVAL,
+            properties,
+            uuid: otherUuid,
+          },
+        ]),
+      );
+
+      otherClient.write(
+        PlayerInfo.addPlayers([
+          {
+            name: 'other_player',
+            displayName: 'other_player',
+            ping: 0,
+            gamemode: Gamemode.SURVIVAL,
+            properties,
+            uuid: client.storage.getOrThrow(uuidBox),
+          },
+        ]),
+      );
 
       client.write(
         new SpawnPlayer(

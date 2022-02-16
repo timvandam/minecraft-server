@@ -1,4 +1,4 @@
-import { Chat } from './Chat';
+import { chat, Chat } from './Chat';
 import { serializeNbt } from './nbt/NBTSerialize';
 import { NBTCompound } from './nbt';
 import { BitSet } from './BitSet';
@@ -91,12 +91,12 @@ export class BufferWriter {
     return this.writeVarInt(textBuf.length).writeBlob(textBuf);
   }
 
-  writeChat(chat: string | Chat) {
-    if (typeof chat === 'string') {
-      return this.writeString(chat);
-    } else {
-      return this.writeString(JSON.stringify(chat));
+  writeChat(strOrChat: string | Chat) {
+    if (typeof strOrChat === 'string') {
+      return this.writeString(JSON.stringify(chat`${strOrChat}`));
     }
+
+    return this.writeString(JSON.stringify(strOrChat));
   }
 
   writeIdentifier(identifier: string) {
@@ -142,16 +142,17 @@ export class BufferWriter {
   }
 
   /**
-   * Writes an angle as an unsigned byte (0-255)
+   * Writes an angle as a byte
    */
   writeAngle(num: number) {
-    return this.writeUByte(num);
+    return this.writeUByte(Math.floor((((360 + num) % 360) / 360) * 256));
   }
 
   writeUuid(uuid: Buffer) {
     if (uuid.length !== 16) {
       throw new Error('UUID must have length of 16 bytes');
     }
+
     return this.writeBlob(uuid);
   }
 

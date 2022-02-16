@@ -8,6 +8,7 @@ import { PlayerSettingsListener } from './PlayerSettingsListener';
 import { DigListener } from './DigListener';
 import { TimeoutListener } from './TimeoutListener';
 import { ChunkListener } from './ChunkListener';
+import { ErrorListener } from './ErrorListener';
 
 export const packetListeners = [
   new StatusListener(),
@@ -20,4 +21,5 @@ export const packetListeners = [
   new DigListener(),
   new TimeoutListener(),
   new ChunkListener(),
+  new ErrorListener(),
 ];

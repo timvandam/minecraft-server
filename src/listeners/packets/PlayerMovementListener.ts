@@ -7,11 +7,12 @@ import { UpdateViewPosition } from '../../packets/packets/client-bound/UpdateVie
 import { MinecraftClient } from '../../MinecraftClient';
 import { LoginStart } from '../../packets/packets/server-bound/LoginStart';
 import { PlayerPositionAndLook } from '../../packets/packets/client-bound/PlayerPositionAndLook';
-import { playerEntityIdBox, positionBox, uuidBox } from '../../box/ClientBoxes';
+import { playerEntityIdBox, playerSettingsBox, positionBox, uuidBox } from '../../box/ClientBoxes';
 import { clientsBox } from '../../box/ServerBoxes';
-import { SpawnPlayer } from '../../packets/packets/client-bound/SpawnPlayer';
-import { PlayerEntityMetadata } from '../../data-types/entity-metadata/entities/PlayerEntityMetadata';
+import { EntityPositionAndRotation } from '../../packets/packets/client-bound/EntityPositionAndRotation';
 import { SetEntityMetadata } from '../../packets/packets/client-bound/SetEntityMetadata';
+import { PlayerEntityMetadata } from '../../data-types/entity-metadata/entities/PlayerEntityMetadata';
+import { SpawnPlayer } from '../../packets/packets/client-bound/SpawnPlayer';
 import { Hand } from '../../packets/packets/server-bound/ClientSettings';
 
 export type Position = {
@@ -24,6 +25,32 @@ export type Position = {
 };
 
 export class PlayerMovementListener {
+  protected getChunkCoords(client: MinecraftClient): [x: number, y: number] {
+    const position = client.storage.getOrThrow(positionBox);
+    return [position.x, position.z].map((c) => Math.floor(c / 16)) as [number, number];
+  }
+
+  /**
+   * Checks whether player2 is in the range of player1 (thus uses plauer1's render distance
+   */
+  protected playerIsInRange(player1: MinecraftClient, player2: MinecraftClient) {
+    const { renderDistance } = player1.storage.getOrThrow(playerSettingsBox);
+    const [player1ChunkX, player1ChunkZ] = this.getChunkCoords(player1);
+    const [player2ChunkX, player2ChunkZ] = this.getChunkCoords(player2);
+    const distance = Math.max(
+      Math.abs(player1ChunkX - player2ChunkX),
+      Math.abs(player1ChunkZ - player2ChunkZ),
+    );
+    return distance < renderDistance;
+  }
+
+  protected getNearbyPlayers(client: MinecraftClient) {
+    const players = client.server.storage.getOrThrow(clientsBox);
+    return [...players].filter(
+      (player) => player !== client && this.playerIsInRange(player, client),
+    );
+  }
+
   protected updatePosition(client: MinecraftClient, current: Position) {
     const prev = client.storage.getOrThrow(positionBox);
 
@@ -31,12 +58,30 @@ export class PlayerMovementListener {
       // TODO: Apply fall damage in different listener
     }
 
-    const prevChunkX = Math.floor(prev.x / 16);
-    const prevChunkZ = Math.floor(prev.z / 16);
+    const [prevChunkX, prevChunkZ] = this.getChunkCoords(client);
     const currentChunkX = Math.floor(current.x / 16);
     const currentChunkZ = Math.floor(current.z / 16);
     if (prevChunkX !== currentChunkX || prevChunkZ !== currentChunkZ) {
       client.write(new UpdateViewPosition(currentChunkX, currentChunkZ));
+    }
+
+    const clientEntityId = client.storage.getOrThrow(playerEntityIdBox);
+    const nearbyPlayers = this.getNearbyPlayers(client);
+    for (const player of nearbyPlayers) {
+      const deltaX = (current.x & (32 - prev.x * 32)) * 128;
+      const deltaY = (current.y & (32 - prev.y * 32)) * 128;
+      const deltaZ = (current.z & (32 - prev.z * 32)) * 128;
+      player.write(
+        new EntityPositionAndRotation(
+          clientEntityId,
+          deltaX,
+          deltaY,
+          deltaZ,
+          current.yaw,
+          current.pitch,
+          current.onGround,
+        ),
+      );
     }
 
     client.storage.put(positionBox, current);
@@ -58,7 +103,7 @@ export class PlayerMovementListener {
     // TODO: Do this elsewhere
     for (const otherClient of client.server.storage.getOrThrow(clientsBox)) {
       if (otherClient === client) continue;
-      console.log('other player!!', otherClient);
+      console.log('other player!!', otherClient.storage);
 
       const otherEntityId = otherClient.storage.getOrThrow(playerEntityIdBox);
       const otherUuid = otherClient.storage.getOrThrow(uuidBox);

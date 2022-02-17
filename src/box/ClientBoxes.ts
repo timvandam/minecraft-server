@@ -24,3 +24,8 @@ export const compressionBox = Box<{ threshold: number }>(Symbol('Compression'));
 export const uuidBox = Box<Buffer>(Symbol('PlayerUUID'));
 
 export const playerEntityIdBox = Box<number>(Symbol('PlayerEntityId'));
+
+/**
+ * The entity IDs of spawned players
+ */
+export const spawnedPlayersBox = Box<Set<number>>(Symbol('SpawnedPlayers'));

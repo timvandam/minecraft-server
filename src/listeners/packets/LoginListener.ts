@@ -57,6 +57,7 @@ export class LoginListener {
       ),
     );
     client.storage.put(playerEntityIdBox, entityId);
+    client.server.storage.getOrThrow(clientsBox).add(client);
     entityId++;
 
     await client.write(

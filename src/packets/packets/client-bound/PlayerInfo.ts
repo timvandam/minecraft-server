@@ -17,17 +17,17 @@ enum PlayerInfoAction {
 
 type Player = { uuid: Buffer };
 
-type AddPlayer = Player & {
+export type AddPlayer = Player & {
   name: string;
   properties: Record<string, { value: string; signature?: string }>;
   gamemode: number;
   ping: number;
 } & UpdateDisplayName;
 
-type UpdateGamemode = Player & { gamemode: Gamemode };
-type UpdateLatency = Player & { ping: number };
-type UpdateDisplayName = Player & { displayName?: string | Chat };
-type RemovePlayer = Player;
+export type UpdateGamemode = Player & { gamemode: Gamemode };
+export type UpdateLatency = Player & { ping: number };
+export type UpdateDisplayName = Player & { displayName?: string | Chat };
+export type RemovePlayer = Player;
 
 // TODO: Allow multiple classes for one ID ONLY IF A FLAG IS FLAGGED! (in createPacket just give a true value optional)
 export class PlayerInfo extends createPacket(0x36, PacketDirection.CLIENT_BOUND, ClientState.PLAY) {
